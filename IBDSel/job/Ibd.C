@@ -446,14 +446,14 @@ void Ibd::Terminate()
     double bincenter=0.;
 	double NFn1=0.;
 	double iNFnsquare1=0.;
-    //for( int j=binlow ; j<=binup ; j++ )
-    //{
-    //bincenter=tFnProEWithrpc->GetBinCenter(j);
-    //NFn1+=(par1[0]+par1[1]*bincenter)/BinWt[j];
-    //iNFnsquare1+=(bincenter*bincenter*ipar1[1]*ipar1[1]+ipar1[0]*ipar1[0])/(BinWt[j]*BinWt[j]);
-    //}
-    NFn1=(par1[0]*2+12.7*par1[1])*(12-0.7)/2;
-    iNFnsquare1=(ipar1[0]*2+12.7*ipar1[1])*(12-0.7)/2; //this is not appropriate ,from zhangfh.
+    for( int j=binlow ; j<=binup ; j++ )
+    {
+        bincenter=tFnProEWithrpc->GetBinCenter(j);
+        NFn1+=(par1[0]+par1[1]*bincenter)/BinWt[j];
+        iNFnsquare1+=(bincenter*bincenter*ipar1[1]*ipar1[1]+ipar1[0]*ipar1[0])/(BinWt[j]*BinWt[j]);
+    }
+    //NFn1=(par1[0]*2+12.7*par1[1])*(12-0.7)/2;
+    //iNFnsquare1=(ipar1[0]*2+12.7*ipar1[1])*(12-0.7)/2; //this is not appropriate ,from zhangfh.
 
 	//NFn1=f1->Integral(0.7,12.0);
 	//pol0
@@ -488,14 +488,14 @@ void Ibd::Terminate()
 	ipar10[1]=f10->GetParError(1);
 	double NFn10=0.;
 	double iNFnsquare10=0.;
-    //for( int j=binlow ; j<=binup ; j++ )
-    //{
-    //bincenter=tFnProEWithoutrpc->GetBinCenter(j);
-    //NFn10+=(par10[0]+par10[1]*bincenter)/BinWt[j];
-    //iNFnsquare10+=(bincenter*bincenter*ipar10[1]*ipar10[1]+ipar10[0]*ipar10[0])/(BinWt[j]*BinWt[j]);
-    //}
-    NFn10=(par10[0]*2+12.7*par10[1])*(12-0.7)/2;
-    iNFnsquare10=(ipar10[0]*2+12.7*ipar10[1])*(12-0.7)/2;
+    for( int j=binlow ; j<=binup ; j++ )
+    {
+        bincenter=tFnProEWithoutrpc->GetBinCenter(j);
+        NFn10+=(par10[0]+par10[1]*bincenter)/BinWt[j];
+        iNFnsquare10+=(bincenter*bincenter*ipar10[1]*ipar10[1]+ipar10[0]*ipar10[0])/(BinWt[j]*BinWt[j]);
+    }
+    //NFn10=(par10[0]*2+12.7*par10[1])*(12-0.7)/2;
+    //iNFnsquare10=(ipar10[0]*2+12.7*ipar10[1])*(12-0.7)/2;
 
 	//pol0
 	TF1* f00= new TF1("f00","pol0",12.,60.);

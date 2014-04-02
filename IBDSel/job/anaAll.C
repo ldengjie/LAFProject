@@ -1558,7 +1558,7 @@ int anaAll(string dataVer,int siteNum=0)
 
         std::cout<<"====> begin to analyse EH"<<siteNum<<"'s DaqTime, epsilon_mu,epsilon_multi,accidentals,He8/Li9 "<<endl;
         std::cout<<"dataVersion  : "<<dataVer<<endl;
-        anaHists(siteNum,dataVer);
+        //anaHists(siteNum,dataVer);
         std::cout<<" "<<endl;
         std::cout<<" "<<endl;
         std::cout<<" "<<endl;
