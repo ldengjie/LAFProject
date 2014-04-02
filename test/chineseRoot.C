@@ -1,0 +1,40 @@
+{
+    TFile* f = new TFile("chineseRoot.root","RECREATE");
+    TTree* t = new TTree("Topic","Topic");
+    int id;
+    //string* name;
+    vector<string> na;
+    //vector<string> *n=&na;
+    //vector<string> *n=new vector<string>;
+    //*n=&na;
+    //n->push_back("ni");
+    int* num;
+    t->Branch("id",&id,"id/I");
+    //t->Branch("name",name);
+    //t->Branch("na","vector<string>",&na);
+    t->Branch("na",&na);
+    id=9;
+    na.push_back("nihao");
+    na.push_back("你好");
+    //name=(string*)malloc(sizeof(string)*2);
+    //num=(int*)malloc(sizeof(int)*2);
+    //num[0]=1;
+    //num[1]=2;
+    //name[0].assign("nihao");
+    //name[1].assign("你好");
+    //name[0]+="nihao";
+    //string n;
+    //n.assign("nihao");
+    t->Fill();
+    na.clear();
+    
+    id=19;
+    na.push_back("我爱中国o");
+    na.push_back("天气很阿红");
+    //name="你好";
+    t->Fill();
+    t->Write();
+    f->Close();
+    //free(name);
+    //name=NULL;
+}

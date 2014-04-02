@@ -1,0 +1,5 @@
+/gdls/generator/setParticle e+ 
+/gdls/generator/setEnergy   10. 
+/histo/fileName /publicfs/dyb/data/mc/wenlj/nonLinearity/comptE/positron10MeV.root
+/histo/setSeed 20009
+/run/beamOn 50000

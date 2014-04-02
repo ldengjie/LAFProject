@@ -1,0 +1,11 @@
+#include "$MUONVETOROOT/share/MuonVeto.txt"
+
+LafMain.Dlls += {"IBDSelectAlg"};
+AlgMgr.Contents += {"DMCIBDSelectAlg"};
+
+DMCIBDSelectAlg.PromptEngLow = 0.7;  // MeV
+DMCIBDSelectAlg.PromptEngHigh = 12.; // MeV
+DMCIBDSelectAlg.DelayedEngLow = 6.;  // MeV
+DMCIBDSelectAlg.DelayedEngHigh = 12.;  // MeV
+DMCIBDSelectAlg.DtLow = 1.e-6;  // 1 us
+DMCIBDSelectAlg.DtHigh = 2.e-4; // 200 us

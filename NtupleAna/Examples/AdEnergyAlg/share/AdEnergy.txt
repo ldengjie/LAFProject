@@ -1,0 +1,2 @@
+LafMain.Dlls += {"AdEnergyAlg"};
+AlgMgr.Contents += {"AdEnergyAlg"};

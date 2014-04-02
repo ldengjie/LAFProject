@@ -1,0 +1,68 @@
+#/control/saveHistory
+#/GdLSExp/phys/SelectPhysics QGSP_BERT
+#/GdLSExp/phys/SelectPhysics Hadron
+#/geometry/material/add NaI Na-I 3.67
+#/GdLSExp/det/setDetectorThickness 30 mm
+#/GdLSExp/det/setTargetLength 3 cm
+#/GdLSExp/det/setTargetMate Lead
+# material definitions has to be done before /run/initilalize
+#/physics_engine/tailor/MuonNuclear on
+#/run/initialize
+#/run/setCutForRegion Target 10 cm
+#/run/setCutForRegion Detector 50 cm
+#/grdm/analogueMC 1
+#/grdm/verbose 0
+#/grdm/noVolumes
+#/grdm/selectVolume Target
+#
+# first simulate 1GeV proton beam on the NaI target
+#/histo/fileName proton
+#/gps/particle mu- 
+#/gps/energy 60 GeV
+#/tracking/verbose 2
+#/particle/select mu+
+#/particle/process/verbose 1
+
+#/process/inactivate muIoni mu+
+#/process/inactivate muIoni mu-
+
+#/process/inactivate msc mu+
+#/process/inactivate msc mu-
+#
+#/process/inactivate muBrems mu+
+#/process/inactivate muBrems mu-
+#
+#/process/inactivate muPairProd mu+
+#/process/inactivate muPairProd mu-
+#
+#/process/inactivate muMinusCaptureAtRest mu-
+#
+#/process/inactivate muNucl mu+
+#/process/inactivate muNucl mu-
+
+/tracking/verbose 0
+/particle/process/verbose 0
+
+#/gdls/generator/setParticle gamma
+#/gdls/generator/setParticle e- 
+#/histo/fileName gamma3.MeV.root
+#/histo/fileName electron0.1MeV.root
+#
+#/gdls/generator/setParticle proton
+#/gdls/generator/setEnergy  86.7   
+#/histo/fileName electron1MeV_noAnni_default.root
+#/histo/fileName gamma1.25MeV_Penelope.root
+#/histo/fileName gamma1MeV_default.root
+#/histo/fileName gamma1MeV_Penelope_test.root
+#/histo/fileName gamma1MeV_default_test.root
+#/histo/fileName alpha5.15MeV_Penelope.root
+#/histo/fileName proton4MeV_Penelope.root
+
+/gdls/generator/setParticle gamma
+/gdls/generator/setEnergy   0.5 
+#/histo/fileName electron3MeV_Penelope_noPosiAnni.root
+#/histo/fileName positron3MeV_Penelope_noPosiAnni.root
+/histo/fileName test.root
+
+/histo/setSeed 20009
+/run/beamOn 5000

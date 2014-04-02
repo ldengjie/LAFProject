@@ -1,0 +1,42 @@
+0).copy the whole folder TemplateAlgPackage/ to your work dir.TemplateAlgPackage's path: /afs/ihep.ac.cn/users/l/lidj/file/TemplateAlgPackage
+1).come into TemplateAlgPackage/
+2).make sure you are using bash shell.switch from tcsh to bash,just key in
+    $bash
+  then
+    $source NewPackage.sh NewPackage
+  note:NewPackage is the name of your own package.
+3).edit src/NewAlgPackage.cc and src/NewAlgPackage.h for your analysis work.
+  the fundamental codes and functions have been included in it,so you can begin your work immediately with no worry about missing fundamental *.h files or having no ideas how to get events from *.root files.it can save much time during your preparation work.
+4).visit cmt/
+5).configure your environment for compiling , for example
+    $source /afs/ihep.ac.cn/users/l/lidj/.laf_opt
+6).start to compile your code
+    $cmt config
+    $source setup.csh
+    $source setup.csh
+    $cmt make
+  then you compile your code successfully.
+7).come to run/ , modify gen.sh
+     6 inputFILELISTPATH="/afs/ihep.ac.cn/users/l/lidj/file/runlist/P12C/whole/GoodRun-part2-v0"
+     7 outPUTFILEPATH="/tempoutpath"
+     8 #useFILE1="TOutputSvc.Output" #if not use FILE1 ,just comment out this line
+     9 outputFile1Name="RUNNUM_hists.root"
+    10 outputFile2Name="RUNNUM_IBD.root"
+    11 useRPC="FALSE"
+  note:the 6th line:the path of your input files ,don't include the site variable ,e.g. EH1 EH2 EH3
+  7th:the path of your output files ,don't include the site variable ,make sure that the directory exists
+  8th:if not using FILE1 ,just comment out this line,FILE2 is default.to aviod saving useless information while you use LiveTimeSvc or MuonVeto tool
+  9th and 10th:names of your output files ,with no need for modifying "outputFile1Name" while not using FILE1.
+  11th:if using PRC muon veto ,choose TRUE
+8).with no need for modifying config_temp.txt and job_temp.csh ,they will be modified by gen.sh automaticly.
+9).make sure you are using bash shell.switch from tcsh to bash,just key in
+    $bash
+  then 
+    $source gen.sh
+  job files are created into run/EH1 run/EH2 run/EH3,e.g.config_22560.txt job_22560.csh submit.sh 
+10).submit jobs to IHEP's job server
+    $source run/EH1/submit.sh
+    $source run/EH2/submit.sh
+    $source run/EH3/submit.sh
+11).wait for running.
+

@@ -1,0 +1,19 @@
+//algorithms
+#include "$ALGORITHMSROOT/share/Algorithms.txt"
+#include "$ADENERGYALGROOT/share/AdEnergy.txt"
+
+//the main cycler
+//#include "$SELCYCLERROOT/share/NormCycler.txt"
+#include "$SELCYCLERROOT/share/SelCycler.txt"
+
+//input service and files
+LafMain.InputSvc = "NtupleInputSvc";
+NtupleInputSvc.InputFiles = { "run13303.list" };
+//LafMain.InputSvc = "ReconInputSvc";
+//ReconInputSvc.InputFiles = { "rec13303.list" };
+
+LafMain.EvtMax   = 10;
+LafMain.LogLevel = 3;
+
+//root file (TNtuple, TTree, THist) output
+TOutputSvc.Output = { "FILE1":"run13303.root" };

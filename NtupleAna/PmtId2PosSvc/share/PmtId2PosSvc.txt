@@ -1,0 +1,3 @@
+LafMain.Dlls += {"PmtId2PosSvc"};
+SvcMgr.Contents += {"PmtId2PosSvc"};
+PmtId2PosSvc.DataFile = "$PMTID2POSSVCROOT/share/Map.dat";

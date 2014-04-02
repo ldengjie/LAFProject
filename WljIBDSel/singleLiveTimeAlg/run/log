@@ -1,0 +1,150 @@
+LafMain.LafMgr             INFO: Welcome to the dayabay Lightweight Analysis Framework
+LafMain.LafMgr             INFO: config_rec.txt
+// ==================================================================================
+//       Parser catalogue 
+// ==================================================================================
+AdEnergyTag.AdEnergyThreshold    = 0.7 ; 
+AlgMgr.Contents                  = ["MuonTagAlg","IBDSelAlg"] ; 
+FlasherTag.QuadrantCut           = 1 ; 
+FlasherTag.RatioMaxQCut          = 0.45 ; 
+IBDSelAlg.AdMuVetoWindow         = 0.001 ; 
+IBDSelAlg.DelayedEngHigh         = 12 ; 
+IBDSelAlg.DelayedEngLow          = 5 ; 
+IBDSelAlg.DtHigh                 = 0.0002 ; 
+IBDSelAlg.DtLow                  = 1e-06 ; 
+IBDSelAlg.MuVetoWindow           = 0.0002 ; 
+IBDSelAlg.PreVetoWindow          = 2e-06 ; 
+IBDSelAlg.PromptEngHigh          = 12 ; 
+IBDSelAlg.PromptEngLow           = 0.7 ; 
+IBDSelAlg.ShowerMuVetoWindow     = 0.15 ; 
+LafMain.Cycler                   = "SelCycler" ; 
+LafMain.Dlls                     = ["Algorithms","IBDSelAlg"] ; 
+LafMain.EvtMax                   = -1 ; 
+LafMain.InputSvc                 = "RecInputSvc" ; 
+LafMain.LogLevel                 = 3 ; 
+MuonTag.AdMuonThreshold          = 20 ; 
+MuonTag.IwsNPmtThreshold         = 12 ; 
+MuonTag.OwsNPmtThreshold         = 12 ; 
+MuonTag.ShowerMuonThreshold      = 1000 ; 
+MuonVeto.AdMuVetoWindow          = 0.001 ; 
+MuonVeto.MuVetoWindow            = 0.0002 ; 
+MuonVeto.PreVetoWindow           = 2e-06 ; 
+MuonVeto.ShowerMuVetoWindow      = 0.15 ; 
+RecInputSvc.InputFiles           = ["run12400_rec.list"] ; 
+SelCycler.ApplyVeto              = 0 ; 
+SelCycler.Tags                   = ["ForceTrigTag","CrossTrigTag","RpcNoiseTag","FlasherTag","AdEnergyTag","MuonTag"] ; 
+SelCycler.TimeWindow             = [-1,0.1] ; 
+TOutputSvc.Output                = ["FILE1":"run12400_hists_rec.root","FILE2":"run12400_rec.root"] ; 
+// ==================================================================================
+LafMain.LafMgr             INFO: Select InputSvc : RecInputSvc
+LafMain.LafMgr             INFO: Select Cycler   : SelCycler
+SvcMgr.SvcMgr              INFO: Load service    : RecInputSvc
+SvcMgr.SvcMgr              INFO: Load service    : SelCycler
+SvcMgr.SvcMgr              INFO: Load service    : TOutputSvc
+AlgMgr.AlgMgr              INFO: Add  algorithm  : MuonTagAlg
+AlgMgr.AlgMgr              INFO: Add  algorithm  : IBDSelAlg
+LafMain.initialize         INFO: Successfully initialized
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0001.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0002.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0003.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0004.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0005.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0006.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0007.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0008.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0009.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0010.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0011.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0012.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0013.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0014.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0015.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0016.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0017.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0018.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0019.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0020.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0021.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0022.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0023.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0024.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0025.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0026.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0027.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0028.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0029.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0030.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0031.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0032.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0033.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0034.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0035.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0036.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0037.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0038.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0039.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0040.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0041.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0042.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0043.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0044.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0045.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0046.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0047.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0048.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0049.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0050.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0051.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0052.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0053.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0054.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0055.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0056.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0057.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0058.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0059.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0060.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0061.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0062.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0063.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0064.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0065.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0066.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0067.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0068.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0069.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0070.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0071.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0072.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0073.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0074.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0075.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0076.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0077.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0078.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0079.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0080.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0081.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0082.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0083.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0084.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0085.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0086.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0087.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0088.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0089.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0090.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0091.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0092.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0093.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0094.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0095.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0096.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0097.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0098.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0099.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0100.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0101.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0102.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0103.root
+Processing /publicfs/dyb/data/rec/P11A/2011/0815/recon.NoTag.0012400.Physics.EH1-Merged.P11A-I._0104.root

@@ -1,0 +1,4 @@
+MuonVeto.MuVetoWindow = 6.e-4;  // 600us
+MuonVeto.AdMuVetoWindow = 1.e-3;  // 1ms
+MuonVeto.ShowerMuVetoWindow = 1.;  // 1s
+MuonVeto.PreVetoWindow = 2.e-6;  // 2us

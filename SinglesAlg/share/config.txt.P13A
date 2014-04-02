@@ -1,0 +1,102 @@
+//loaded dlls
+LafMain.Dlls = {"Algorithms"};
+LafMain.Dlls += {"SinglesAlg"};
+//algorithms
+AlgMgr.Contents += {"LiveTimeAlg","MuonTagAlg"};
+AlgMgr.Contents += {"SinglesAlg"};
+
+SinglesAlg.SinglesEngLow = 5.5; //MeV
+SinglesAlg.SinglesEngHigh = 20.0; //MeV
+SinglesAlg.SinglesTime2PreLow = 2.e-4; // 200 us
+SinglesAlg.SinglesTime2PostLow = 2.e-4; // 200 us
+SinglesAlg.SingleTime2MuonHigh = 20.; // 20s
+
+//SinglesAlg.NeuCutType = "Time";
+//SinglesAlg.MuonTime2NeuLow = 10.e-6;  // 10us
+//SinglesAlg.MuonTime2NeuHigh = 200.e-6; // 200us
+//SinglesAlg.TimeRMSLowForNeu = 50.;
+//SinglesAlg.NeuHGdEnergyLow = 1.8; // 1.8MeV
+//SinglesAlg.NeuHGdEnergyHigh = 12.0; // 12MeV
+//SinglesAlg.NeuGdEnergyLow = 6.0; // 6MeV
+//SinglesAlg.MuonEnergyLow = 20.0; // 20MeV
+
+SinglesAlg.FindSingle = TRUE;
+
+//====================================
+LafMain.Dlls += {"MuonNeutronBufSvc"};
+SvcMgr.Contents += {"MuonNeutronBufSvc"};
+MuonNeutronBufSvc.BufferEarliestTimeThreshold = -20.; // s
+MuonNeutronBufSvc.SpallationNeutronTimeWindow = {-200.e-6, -10.e-6}; //s
+MuonNeutronBufSvc.SpallationNeutronEnergyWindow = {1.8, 12}; // MeV
+
+//====================================
+//the cycler
+LafMain.Dlls += {"SelCycler"};
+SvcMgr.Contents += {"SelCycler"};
+
+SelCycler.Tags = { "ForceTrigTag", "CrossTrigTag", "RpcNoiseTag", "FlasherTag", "AdEnergyTag", "MuonTag" };
+SelCycler.TimeWindow = { -1e-1, 1e-1};
+
+// don't apply any veto
+ForceTrigTag.ApplyVeto  = FALSE;
+CrossTrigTag.ApplyVeto  = FALSE;
+RpcNoiseTag.ApplyVeto   = FALSE;
+FlasherTag.ApplyVeto    = FALSE;
+AdEnergyTag.ApplyVeto   = FALSE;
+
+// flasher tag
+FlasherTag.RatioMaxQCut = 0.45;
+FlasherTag.QuadrantCut = 1.;
+FlasherTag.calibPMTFlasherCut = 100.;
+
+//Set FanCycler as the Cycler of LAF
+LafMain.Cycler = "FanCycler";
+FanCycler.TimeWindow = { -20., 1e-1 };
+
+FanCycler.Tags = { "FanAdMuonTag" };
+FanAdMuonTag.ApplyVeto = FALSE;
+FanAdMuonTag.AdMuonThreshold = 20.; // MeV
+FanAdMuonTag.ShowerMuonThreshold = 2500.; // MeV
+FanAdMuonTag.CoincWindow = { -2.e-6, 2.e-6 };  // +/-2us
+
+FanAdMuonTag.MichelElectronWindow = { 20., 60.}; // 20MeV-60MeV
+FanAdMuonTag.MichelElectronTime2MuonThreshold = 10.e-6; // 10us
+
+// low energy tag
+AdEnergyTag.AdEnergyThreshold = 0.7; // MeV
+
+// muon tag
+MuonTag.ApplyVeto       = FALSE;
+MuonTag.AdMuonThreshold = 20.; // MeV
+MuonTag.ShowerMuonThreshold = 2500.; // MeV
+MuonTag.IwsNPmtThreshold = 12;
+MuonTag.OwsNPmtThreshold = 12;
+MuonTag.tagRPCMuon = FALSE;
+MuonTag.tagADMuon = FALSE;
+
+// muon veto window
+MuonVeto.MuVetoWindow = 2.e-4;  // 200us
+MuonVeto.AdMuVetoWindow = 1.e-3;  // 1ms
+MuonVeto.ShowerMuVetoWindow = 1.e-3;  // 1ms
+MuonVeto.PreVetoWindow = 2.e-6;  // 2us
+MuonVeto.useRPCVeto = FALSE;
+
+//*******  DefaultCharge *******//
+LafMain.InputSvc = "MiniReconInputSvc";
+MiniReconInputSvc.PreferredRecTree = "Event/Rec/AdScaled";
+MiniReconInputSvc.PreferredEnergy = "enrec";
+MiniReconInputSvc.InputFiles = {"run_xxx.list" };
+
+GlobalVar.NumADs = x;
+
+SvcMgr.Contents += {"LiveTimeSvc"};
+LiveTimeSvc.TimeGap = 1.; // 1 second
+LiveTimeSvc.StartTime = "2012-08-14";
+LiveTimeSvc.EndTime = "2013-07-31";
+LiveTimeSvc.BinWidth = 3600; //s
+
+LafMain.EvtMax   = -1;
+LafMain.LogLevel = 3;
+
+//root file (TNtuple, TTree, THist) output
+TOutputSvc.Output = { "FILE1":"run_xxx.root" };

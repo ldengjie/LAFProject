@@ -1,0 +1,5 @@
+/gdls/generator/setParticle gamma
+/gdls/generator/setEnergy  0.1
+/histo/fileName /publicfs/dyb/data/userdata/yangms/g4test/GdLSExp/job/ymstestGdLSExp1.root
+/histo/setSeed 20000
+/run/beamOn 200000

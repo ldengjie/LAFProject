@@ -1,0 +1,80 @@
+#include "$ALGORITHMSROOT/share/Algorithms.txt"
+//loaded dlls
+LafMain.Dlls = {"Algorithms"};
+
+LafMain.Dlls += {"FindEvent"};
+AlgMgr.Contents += {"FindEvent"};
+
+//====================================
+FindEvent.AdMuonELow = 20.;//no use
+FindEvent.AdMuonEHigh =2500.;
+FindEvent.PromptEnergyLow = 0.7;  // MeV
+FindEvent.PromptEnergyHigh = 200.; // MeV
+FindEvent.DelayedEnergyLow = 6.;  // MeV
+FindEvent.DelayedEnergyHigh = 12.;  // MeV
+FindEvent.IbdTimeIntervalMin = 1.e-6;  // 1 us
+FindEvent.IbdTimeIntervalMax = 2.e-4; // 200 us
+FindEvent.DelayedTrigTime2AdMuon = 1.e-3;
+FindEvent.DelayedTrigTime2IWpMuon = 6.e-4;
+FindEvent.DelayedTrigTime2OWpMuon = 6.e-4;
+FindEvent.DelayedTrigTime2AdShowerMuon = 1.;
+FindEvent.Time2LastBufEvent = 2.e-4;
+//====================================
+//input service and files
+LafMain.InputSvc = "ReconInputSvc";
+ReconInputSvc.PreferredRecTree = "Event/Rec/AdScaled";
+ReconInputSvc.PreferredEnergy = "enrec";
+ReconInputSvc.InputFiles = {
+"/dybfs/rec/P12E/GoodRun_v4/minirec_peakCharge/SITE/runRUNNUM.list" };
+
+LafMain.EvtMax   = -1;
+LafMain.LogLevel = 3;
+
+//root file (TNtuple, TTree, THist) output
+//TOutputSvc.Output += {
+//"FILE2":"/afs/ihep.ac.cn/users/l/lidj/data/FindEvent/SITE/runRUNNUM_IBD.root" };
+//====================================
+//the cycler
+LafMain.Dlls += {"SelCycler"};
+SvcMgr.Contents += {"SelCycler"};
+
+SelCycler.Tags = { "ForceTrigTag", "CrossTrigTag", "RpcNoiseTag", "FlasherTag", "MuonTag"};
+SelCycler.TimeWindow = { -0.1, 0.1};
+SelCycler.KeepFirstEvtEachFile = TRUE;
+
+FlasherTag.RatioMaxQCut = 0.45;
+FlasherTag.QuadrantCut = 1.;
+FlasherTag.calibPMTFlasherCut = 100.;
+
+// every tag should be set to ApplyVeto or not
+FlasherTag.ApplyVeto = FALSE;
+CrossTrigTag.ApplyVeto = TRUE;
+ForceTrigTag.ApplyVeto = TRUE;
+RpcNoiseTag.ApplyVeto = TRUE;
+MuonTag.ApplyVeto = FALSE;
+
+//Set FanCycler as the Cycler of LAF
+LafMain.Cycler = "FanCycler";
+FanCycler.TimeWindow = { -10., 1e-1 };
+
+FanCycler.Tags = { "FanAdMuonTag" };
+FanAdMuonTag.ApplyVeto = FALSE;
+FanAdMuonTag.AdMuonThreshold = 20.; // MeV
+FanAdMuonTag.ShowerMuonThreshold = 2500.; // MeV
+FanAdMuonTag.CoincWindow = { -2e-6, 2e-6 };  // +/-2us
+
+GlobalVar.NumADs = 3;
+//===================================
+//MuonVeto related configuration
+MuonTag.IwsNPmtThreshold = 12;
+MuonTag.OwsNPmtThreshold = 12;
+MuonTag.tagRPCMuon = FALSE;
+MuonTag.tagADMuon  = FALSE;
+MuonTag.AdMuonThreshold = 20.; // MeV
+MuonTag.ShowerMuonThreshold = 2500.; // MeV
+
+MuonVeto.MuVetoWindow = 2.e-4; // s
+MuonVeto.AdMuVetoWindow = 2.e-4; // s
+MuonVeto.ShowerMuVetoWindow = 2.e-4; // s
+MuonVeto.PreVetoWindow = 2.e-6; // s
+MuonVeto.useRPCVeto = FALSE;

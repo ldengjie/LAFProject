@@ -1,0 +1,13 @@
+#include "$MUONVETOROOT/share/MuonVeto.txt"
+
+LafMain.Dlls += {"IBDSelectAlg"};
+AlgMgr.Contents += {"OffWindowAlg"};
+
+OffWindowAlg.PromptEngLow = 0.7;  // MeV
+OffWindowAlg.PromptEngHigh = 12.; // MeV
+OffWindowAlg.DelayedEngLow = 6.;  // MeV
+OffWindowAlg.DelayedEngHigh = 12.;  // MeV
+OffWindowAlg.DtLow = 1.e-6;  // 1 us
+OffWindowAlg.DtHigh = 2.e-4; // 200 us
+OffWindowAlg.OffWindow = 0.;  // 0 ms
+OffWindowAlg.OffWindowBin = 100;  // 0~20 ms

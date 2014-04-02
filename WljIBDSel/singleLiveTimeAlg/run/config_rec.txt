@@ -1,0 +1,20 @@
+//algorithms
+#include "$ALGORITHMSROOT/share/Algorithms.txt"
+#include "$MUONVETOROOT/share/MuonVeto.txt"
+#include "$IBDSELALGROOT/share/IBDSelect.txt"
+
+//the main cycler
+#include "$IBDSELALGROOT/share/SelCycler.txt"
+
+SelCycler.TimeWindow = { -1, 1e-1};
+
+//input service and files
+LafMain.InputSvc = "RecInputSvc";
+RecInputSvc.InputFiles = { "run12400_rec.list" };
+
+LafMain.EvtMax   = -1;
+LafMain.LogLevel = 2;
+
+//root file (TNtuple, TTree, THist) output
+TOutputSvc.Output += { "FILE1":"run12400_hists_rec.root" };
+TOutputSvc.Output += { "FILE2":"run12400_rec.root" };

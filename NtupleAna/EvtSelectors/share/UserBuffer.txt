@@ -1,0 +1,7 @@
+LafMain.Dlls += {"EvtSelectors"};
+
+/***
+  UserBuffer(s) may slow down the speed of LAF.
+  So, DO NOT choose unnecessary ones.
+***/
+//UserBufMgr.Selectors += {"MuonSelector", "AdSelector"};

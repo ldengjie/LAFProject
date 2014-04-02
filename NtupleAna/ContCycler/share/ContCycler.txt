@@ -1,0 +1,3 @@
+LafMain.Cycler = "ContCycler";
+//ContCycler.InputSvc = "SelCycler";
+//SelCycler.TimeWindow = { -1e-3, 1e-3};

@@ -1,0 +1,10 @@
+LafMain.InputSvc = "TimeAlignedInputSvc";
+TimeAlignedInputSvc.TimeShiftFromFile = "$TIMEALIGNEDINPUTSVCROOT/share/TimeShift.txt";
+
+SvcMgr.Contents += { "ReconInputSvc" };
+ReconInputSvc.PreferredRecTree = "Event/Rec/AdScaled";
+ReconInputSvc.PreferredEnergy  = "enrec";
+
+//User settings:
+//TimeAlignedInputSvc.RunNumber = 21221;
+//ReconInputSvc.InputFiles = {"run21221.list"};

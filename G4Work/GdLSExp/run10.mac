@@ -1,0 +1,3 @@
+/histo/fileName test.root
+/histo/setSeed 10010
+/run/beamOn 10

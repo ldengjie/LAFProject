@@ -1,0 +1,8 @@
+#/tracking/verbose 1
+/gdls/generator/setParticle neutron
+/gdls/generator/setEnergy  0.01
+#/histo/fileName /publicfs/dyb/data/mc/wenlj/nonLinearity/comptE/GdLSExpNeutron_useNNDCGdCaptureFalse.root
+#/histo/fileName /publicfs/dyb/data/mc/wenlj/nonLinearity/comptE/GdLSExpNeutron_useNNDCGdCaptureTrue_useOldNdtGdSpectraTrue.root
+/histo/fileName /publicfs/dyb/data/mc/wenlj/nonLinearity/comptE/GdLSExpNeutron_useNNDCGdCaptureTrue_useOldNdtGdSpectraFalse.root
+/histo/setSeed 12004
+/run/beamOn 200000

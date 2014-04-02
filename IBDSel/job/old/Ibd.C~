@@ -1,0 +1,310 @@
+#define Ibd_cxx
+// The class definition in Ibd.h has been generated automatically
+// by the ROOT utility TTree::MakeSelector(). This class is derived
+// from the ROOT class TSelector. For more information on the TSelector
+// framework see $ROOTSYS/README/README.SELECTOR or the ROOT User Manual.
+
+// The following methods are defined in this file:
+//    Begin():        called every time a loop on the tree starts,
+//                    a convenient place to create your histograms.
+//    SlaveBegin():   called after Begin(), when on PROOF called only on the
+//                    slave servers.
+//    Process():      called for each event, in this function you decide what
+//                    to read and fill your histograms.
+//    SlaveTerminate: called at the end of the loop on the tree, when on PROOF
+//                    called only on the slave servers.
+//    Terminate():    called at the end of the loop on the tree,
+//                    a convenient place to draw/fit your histograms.
+//
+// To use this file, try the following session on your Tree T:
+//
+// Root > T->Process("Ibd.C")
+// Root > T->Process("Ibd.C","some options")
+// Root > T->Process("Ibd.C+")
+//
+
+#include "Ibd.h"
+#include <TH2.h>
+#include <TF1.h>
+#include <TStyle.h>
+
+
+void Ibd::Begin(TTree * /*tree*/)
+{
+   // The Begin() function is called at the start of the query.
+   // When running with PROOF Begin() is only called on the client.
+   // The tree argument is deprecated (on PROOF 0 is passed).
+
+   TString option = GetOption();
+   ADNum=3;
+   
+	//if( option.EqualTo("EH1") || option.EqualTo("EH2"))
+	if( option=="EH1")
+	{
+		ADNum=2;
+	}
+	if( option=="EH2" )
+	{
+		ADNum=1;
+	}
+   for( int i=0 ; i<4 ; i++ )
+   {
+	   Num0[i]=0;
+	   Num1[i]=0;
+	   Num2[i]=0;
+   }
+   option+="Ibd.root";
+   file = new TFile(option,"RECREATE");
+
+   // Binning	
+   double rnorm = 1.;
+   // calculate muon E bins
+	const int nBins = 200;
+	double xlow = 0.001, xup = 200.;
+	BinWt = new double[nBins+1];
+	double EBins[nBins+1] = {0.0};
+	EBins[0] = xlow;
+	double BinWidth = (TMath::Log10(xup)-TMath::Log10(xlow))/nBins;
+
+	for(int i=1; i<=nBins; i++) {
+		EBins[i] = xlow*TMath::Power(10, BinWidth*i);
+		BinWt[i] = rnorm/(EBins[i]-EBins[i-1]);
+	}
+
+   for(int i=0;i<ADNum;i++)
+	{
+		histname="AD";
+		histname+=i+1;
+		histname+="t2lastmuonWithrpc";
+	   t2lastmuonWithrpc[i] = new TH1F(histname,"prompt time to last Muon with using rpc veto",5000,0.,50000.);
+		histname="AD";
+		histname+=i+1;
+		histname+="t2lastmuonWithoutrpc";
+	   t2lastmuonWithoutrpc[i] = new TH1F(histname,"prompt time to last Muon with using rpc veto",5000,0.,50000.);
+		histname="AD";
+		histname+=i+1;
+		histname+="FnProEWithrpc";
+		FnProEWithrpc[i]=new TH1F(histname,"Energy of promt signal with using rpc veto",nBins, EBins);
+		histname="AD";
+		histname+=i+1;
+		histname+="FnProEWithoutrpc";
+		FnProEWithoutrpc[i]=new TH1F(histname,"Energy of promt signal without using rpc veto",nBins, EBins);
+		histname="AD";
+		histname+=i+1;
+		histname+="pxy";
+		pxy[i] = new TH2F(histname,"pxy",30,-3.,3.,30,-3.,3.);
+		histname="AD";
+		histname+=i+1;
+		histname+="prz";
+		prz[i] = new TH2F(histname,"prz",30,0,3.,30,-3.,3.);
+		histname="AD";
+		histname+=i+1;
+		histname+="pE";
+		pE[i]= new TH1F(histname,"Energy of promt signal",30,0.7 ,12.0);
+		histname="AD";
+		histname+=i+1;
+		histname+="dxy";
+		dxy[i] = new TH2F(histname,"dxy",30,-3.,3.,30,-3.,3.);
+		histname="AD";
+		histname+=i+1;
+		histname+="drz";
+		drz[i] = new TH2F(histname,"drz",30,0,3.,30,-3.,3.);
+		histname="AD";
+		histname+=i+1;
+		histname+="dE";
+		dE[i]= new TH1F(histname,"Energy of delayed signal",60,6.0,12.0);
+		histname="AD";
+		histname+=i+1;
+		histname+="intervalT";
+		intervalT[i]= new TH1F(histname,"interval time between prompt and delayed signal",400,0.,200.);
+	}
+}
+
+void Ibd::SlaveBegin(TTree * /*tree*/)
+{
+   // The SlaveBegin() function is called after the Begin() function.
+   // When running with PROOF SlaveBegin() is called on each slave server.
+   // The tree argument is deprecated (on PROOF 0 is passed).
+
+   TString option = GetOption();
+
+}
+
+Bool_t Ibd::Process(Long64_t entry)
+{
+   // The Process() function is called for each entry in the tree (or possibly
+   // keyed object in the case of PROOF) to be processed. The entry argument
+   // specifies which entry in the currently loaded tree is to be processed.
+   // It can be passed to either Ibd::GetEntry() or TBranch::GetEntry()
+   // to read either all or the required parts of the data. When processing
+   // keyed objects with PROOF, the object is already loaded and is available
+   // via the fObject pointer.
+   //
+   // This function should contain the "body" of the lysis. It can contain
+   // simple or elaborate selection criteria, run algorithms on the data
+   // of the event and typically fill histograms.
+   //
+   // The processing can be stopped by calling Abort().
+   //
+   // Use fStatus to set the return value of TTree::Process().
+   //
+   // The return value is currently not used.
+	GetEntry(entry);
+	float t2lastmuonWoutrpc=promptT2Muon[0];
+	for( int i=0 ; i<4 ; i++ )
+	{
+		if( t2lastmuonWoutrpc>promptT2Muon[i] )
+		{
+			t2lastmuonWoutrpc=promptT2Muon[i];
+		}
+	}
+	float t2lastmuonWrpc=promptT2Muon[4];
+	if( t2lastmuonWrpc>t2lastmuonWoutrpc)
+	{
+		t2lastmuonWrpc=t2lastmuonWoutrpc;
+	}
+	int bin = FnProEWithrpc[det-1]->FindBin(energy[0]);
+	double wt=BinWt[bin];
+
+	if( isIbd==0 )
+	{
+		Num0[det-1]++;
+		pxy[det-1]->Fill(x[0]/1000,y[0]/1000);
+		prz[det-1]->Fill(sqrt(x[0]*x[0]+y[0]*y[0])/1000,z[0]/1000);
+		pE[det-1]->Fill(energy[0]);
+		dxy[det-1]->Fill(x[1]/1000,y[1]/1000);
+		drz[det-1]->Fill(sqrt(x[1]*x[1]+y[1]*y[1])/1000,z[1]/1000);
+		dE[det-1]->Fill(energy[1]);
+		intervalT[det-1]->Fill(timeInterval);
+		t2lastmuonWithoutrpc[det-1]->Fill(t2lastmuonWoutrpc*1e6);
+		FnProEWithoutrpc[det-1]->Fill(energy[0],wt);
+		
+	} else if( isIbd==1 )
+	{
+		Num1[det-1]++;
+		t2lastmuonWithoutrpc[det-1]->Fill(t2lastmuonWoutrpc*1e6);
+		t2lastmuonWithrpc[det-1]->Fill(t2lastmuonWrpc*1e6);
+		FnProEWithoutrpc[det-1]->Fill(energy[0],wt);
+		FnProEWithrpc[det-1]->Fill(energy[0],wt);
+	} else if( isIbd==2 )
+	{
+		Num2[det-1]++;
+		t2lastmuonWithrpc[det-1]->Fill(t2lastmuonWrpc*1e6);
+		FnProEWithrpc[det-1]->Fill(energy[0],wt);
+	} else if( isIbd==3 )
+	{
+		FnProEWithoutrpc[det-1]->Fill(energy[0],wt);
+	} else if( isIbd==4 )
+	{
+		FnProEWithoutrpc[det-1]->Fill(energy[0],wt);
+		FnProEWithrpc[det-1]->Fill(energy[0],wt);
+	} else
+	{
+		FnProEWithrpc[det-1]->Fill(energy[0],wt);
+	}
+
+   return kTRUE;
+}
+
+void Ibd::SlaveTerminate()
+{
+   // The SlaveTerminate() function is called after all entries or objects
+   // have been processed. When running with PROOF SlaveTerminate() is called
+   // on each slave server.
+
+}
+
+void Ibd::Terminate()
+{
+   // The Terminate() function is the last function to be called during
+   // a query. It always runs on the client, it can be used to present
+   // the results graphically or save the results to file.
+	for( int i=0 ; i<ADNum ; i++ )
+	{
+		//usr rpc veto
+		//pol1
+		TF1* f1= new TF1("f1","pol1",log(12.),log(100.));
+		FnProEWithrpc[i]->Fit(f1,"R");
+		double par1[2],ipar1[2];
+		f1->GetParameters(&par1[0]);
+		f1->GetParErrors(&ipar1[0]);
+		int binlow=FnProEWithrpc[i]->FindBin(log(0.7));
+		int binup=FnProEWithrpc[i]->FindBin(log(12.));
+		double bincenter=0.;
+		int NFn1=0;
+		double iNFnsquare1=0;
+		for( int j=binlow ; j<=binup ; j++ )
+		{
+			bincenter=FnProEWithrpc[i]->GetBinCenter(j);
+			NFn1+=(par1[0]+par1[1]*bincenter)/BinWt[j];
+			iNFnsquare1+=(bincenter*bincenter*ipar1[1]*ipar1[1]+ipar1[0]*ipar1[0])/(BinWt[j]*BinWt[j])
+		}
+		//pol0
+		TF1* f0= new TF1("f0","pol0",log(12.),log(100.));
+		FnProEWithrpc[i]->Fit(f0,"R");
+		double par0,ipar0;
+		f0->GetParameters(&par0);
+		f0->GetParErrors(&ipar0);
+		int NFn0=0;
+		double iNFnsquare0=0;
+		for( int j=binlow ; j<=binup ; j++ )
+		{
+			bincenter=FnProEWithrpc[i]->GetBinCenter(j);
+			NFn0+=(par0+par0*bincenter)/BinWt[j];
+			iNFnsquare0+=(bincenter*bincenter*ipar0*ipar0+ipar0*ipar0)/(BinWt[j]*BinWt[j])
+		}
+		//without using rpc veto
+		//pol1
+		FnProEWithoutrpc[i]->Fit(f1,"R");
+		double par10[2],ipar10[2];
+		f1->GetParameters(&par10[0]);
+		f1->GetParErrors(&ipar10[0]);
+		int NFn10=0;
+		double iNFnsquare10=0;
+		for( int j=binlow ; j<=binup ; j++ )
+		{
+			bincenter=FnProEWithoutrpc[i]->GetBinCenter(j);
+			NFn10+=(par10[0]+par10[1]*bincenter)/BinWt[j];
+			iNFnsquare10+=(bincenter*bincenter*ipar10[1]*ipar10[1]+ipar10[0]*ipar10[0])/(BinWt[j]*BinWt[j])
+		}
+		//pol0
+		FnProEWithoutrpc[i]->Fit(f0,"R");
+		double par00,ipar00;
+		f0->GetParameters(&par00);
+		f0->GetParErrors(&ipar00);
+		int NFn00=0;
+		double iNFnsquare00=0;
+		for( int j=binlow ; j<=binup ; j++ )
+		{
+			bincenter=FnProEWithoutrpc[i]->GetBinCenter(j);
+			NFn00+=(par00+par00*bincenter)/BinWt[j];
+			iNFnsquare00+=(bincenter*bincenter*ipar00*ipar00+ipar00*ipar00)/(BinWt[j]*BinWt[j])
+		}
+	
+		t2lastmuonWithrpc[i]->Write();
+		t2lastmuonWithoutrpc[i]->Write();
+		FnProEWithrpc[i]->Write();
+		FnProEWithoutrpc[i]->Write();
+		pxy[i]->Write();
+		prz[i]->Write();
+		pE[i]->Write();
+		dxy[i]->Write();
+		drz[i]->Write();
+		dE[i]->Write();
+		intervalT[i]->Write();
+
+		std::cout<<""<<endl;
+		std::cout<<"AD"<<i+1<<" Num of IBD                    : ["<<Num2[i]+Num1[i] <<"]"<<endl;
+		std::cout<<"    Num2: "<<Num2[i]<<" Num1: "<<Num1[i]<<endl;
+		std::cout<<"AD"<<i+1<<" Num of IBD (without using rpc veto) : ["<<Num0[i]+Num1[i]<<"]" <<endl;
+		std::cout<<"    Num0: "<<Num0[i]<<" Num1: "<<Num1[i]<<endl;
+		std::cout<<" "<<endl;
+		std::cout<<"number of fn  : "<<endl;
+		std::cout<<"	pol0  : "<<NFn0<<" +- "<<sqrt(iNFnsquare0) <<endl;
+		std::cout<<"	pol1  : "<<NFn1<<" +- "<<sqrt(iNFnsquare1) <<endl;
+		std::cout<<"number of fn (without using rpc veto) : "<<endl;
+		std::cout<<"	pol0  : "<<NFn00<<" +- "<<sqrt(iNFnsquare00) <<endl;
+		std::cout<<"	pol1  : "<<NFn10<<" +- "<<sqrt(iNFnsquare10) <<endl;
+	}
+	file->Close();	
+}

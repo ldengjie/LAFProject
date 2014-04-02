@@ -1,0 +1,5 @@
+LafMain.InputSvc = "MiniReconInputSvc";
+
+MiniReconInputSvc.PreferredRecTree = "Event/Rec/AdScaled";
+MiniReconInputSvc.PreferredEnergy  = "enrec";
+//MiniReconInputSvc.InputFiles = { "rec13303.list" };

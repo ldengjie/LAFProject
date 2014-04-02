@@ -1,0 +1,79 @@
+{
+        TFile *f=new TFile("/afs/ihep.ac.cn/users/l/lidj/largedata/TrackInfo/EH1/21344_track.root");
+        TH1F *h = (TH1F*)f->Get("lidj/h");
+        float timeline[8][24][2];
+        for( int i=0 ; i<8 ; i++ )
+        {
+            for( int j=0 ; j<24 ; j++ )
+            {
+                for( int k=0 ; k<2 ; k++ )
+                {
+                    timeline[i][j][k]=0.;
+                }
+            }
+        }
+        float mintime,maxtime;
+        bool initi=true;
+        for( int i=0 ; i<8 ; i++ )
+        {
+            for( int j=0 ; j<24 ; j++ )
+            {
+                for( int k=0 ; k<2 ; k++ )
+                {
+                    timeline[i][j][k]=h->GetBinContent(((i)*24+j+1)*2-1+k);
+                }
+                if( (timeline[i][j][0]!=0)&&(initi) )
+                {
+                    mintime=timeline[i][j][0];
+                    maxtime=timeline[i][j][0];
+                    initi=false;
+                }
+                if( (timeline[i][j][0]!=0)&&(timeline[i][j][0]<mintime) )
+                {
+                    mintime=timeline[i][j][0];
+                }
+                if((timeline[i][j][0]!=0)&&( timeline[i][j][1]>maxtime) )
+                {
+                    maxtime=timeline[i][j][1];
+                }
+            }
+        }
+
+        //TFile *f=new TFile("/afs/ihep.ac.cn/users/l/lidj/file/TrackInfo/run/EH1/test.root","recreate")
+        TCanvas * myC1 = new TCanva s("myC1","A Canvas",10,10,800,600);
+        TF1 *f1 = new TF1("func1","4",mintime-10,maxtime+10);
+        f1->SetLineColor(10);
+        f1->Draw();
+        TLine l[8][24];
+        TMarker m[8][24];
+        for( int i=0 ; i<8 ; i++ )
+        {
+            for( int j=0 ; j<24 ; j++ )
+            {
+                if( timeline[i][j][0]!=0 )
+                {
+                if( timeline[i][j][0]==timeline[i][j][1] )
+                {
+                   m[i][j].SetX(timeline[i][j][0]);
+                   m[i][j].SetY(i+j*0.04);
+                   m[i][j].Draw();
+                   continue;
+                }
+                l[i][j].SetX1(timeline[i][j][0]);
+                l[i][j].SetX2(timeline[i][j][1]);
+                l[i][j].SetY1(i+j*0.04);
+                l[i][j].SetY2(i+j*0.04);
+                l[i][j].SetLineColor(i+1);
+                l[i][j].SetLineWidth(1);
+                l[i][j].Draw();
+                }
+                else
+                {
+                    std::cout<<"!!! ==0 !!! "<<endl; 
+                }
+            }
+        
+        }
+        myC1->SaveAs("myex33.gif");
+        //f->Write();
+}

@@ -1,0 +1,48 @@
+//algorithms
+LafMain.Dlls += {"TimeShiftAlg"};
+AlgMgr.Contents += {"TimeShiftAlg"};
+TimeShiftAlg.TimeWindow  = 1000;  //ns
+TimeShiftAlg.StandardDet = 5;     //IWS
+TimeShiftAlg.MultiDet    = 3;     //muon passes throught at least 3 detector3
+TimeShiftAlg.SavePlot    = true;   //false by default
+TimeShiftAlg.OutputPrefix = "run21221";
+
+//cycler
+LafMain.Cycler = "SelCycler";
+SelCycler.Tags = { "ForceTrigTag", "CrossTrigTag", "FlasherTag", "AdEnergyTag", "MuonTag" };
+SelCycler.TimeWindow = { -1.e-6, 1.e-6};
+
+ForceTrigTag.ApplyVeto  = TRUE;
+CrossTrigTag.ApplyVeto  = TRUE;
+FlasherTag.ApplyVeto    = TRUE;
+AdEnergyTag.ApplyVeto   = TRUE;
+MuonTag.ApplyVeto       = FALSE;
+
+FlasherTag.RatioMaxQCut = 0.45;
+FlasherTag.QuadrantCut  = 1.;
+
+AdEnergyTag.AdEnergyThreshold = 18.; // MeV  //skip not-muon events
+
+MuonTag.AdMuonThreshold = 20.; // MeV
+MuonTag.ShowerMuonThreshold = 1000.; // MeV
+MuonTag.IwsNPmtThreshold = 12;
+MuonTag.OwsNPmtThreshold = 12;
+
+//user buffer
+LafMain.Dlls += {"EvtSelectors"};
+UserBufMgr.Selectors += { "MuonSelector" };
+MuonSelector.VetoRetrigger = TRUE;
+
+//input files and output files
+LafMain.InputSvc = "ReconInputSvc";
+ReconInputSvc.PreferredRecTree = "Event/Rec/AdScaled";
+ReconInputSvc.PreferredEnergy  = "enrec";
+
+ReconInputSvc.InputFiles = {
+"/dybfs/rec/P12C/rec/runs_0021000/runs_0021200/run_0021221/recon.Neutrino.0021221.Physics.EH1-Merged.P12C-I._0001.root",
+"/dybfs/rec/P12C/rec/runs_0021000/runs_0021200/run_0021221/recon.Neutrino.0021221.Physics.EH1-Merged.P12C-I._0002.root",
+"/dybfs/rec/P12C/rec/runs_0021000/runs_0021200/run_0021221/recon.Neutrino.0021221.Physics.EH1-Merged.P12C-I._0003.root"
+};
+
+LafMain.EvtMax = -1;
+LafMain.LogLevel = 3;

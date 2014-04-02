@@ -1,0 +1,5 @@
+/gdls/generator/setParticle gamma
+/gdls/generator/setEnergy 1.8567
+/histo/fileName /publicfs/dyb/data/mc/wenlj/nonLinearity/comptE/GdLS_nC4.root
+/histo/setSeed 40005
+/run/beamOn 200000

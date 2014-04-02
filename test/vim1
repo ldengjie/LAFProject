@@ -1,0 +1,27 @@
+1 2 3
+4 5 6
+7 8 9
+10 11 12
+13 14 15
+{r
+
+                int arr[10] = {51,116,53,120,85,66,71,98,86,100};
+                int i, j;
+#include  <iostream>
+#include  <fstream>
+#include  <string>
+void readtxt()
+{
+	ifstream infile;
+	infile.open("pmtDataTable_02.txt",ios::in);
+	string a;
+FastNeuSelAlg
+FindEvent
+G4Work
+IBDSel
+InstallArea
+IsotopesAna
+LiAna
+NtupleAna
+runlist
+SimplifiedRoot

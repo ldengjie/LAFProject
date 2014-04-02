@@ -1,0 +1,8 @@
+#include "$LIVETIMESVCROOT/share/LiveTime.txt"
+#include "$MUONVETOROOT/share/MuonVeto.txt"
+
+//loaded dlls
+LafMain.Dlls = {"Algorithms"};
+//algorithms
+AlgMgr.Contents += {"LiveTimeAlg","MuonTagAlg"};
+

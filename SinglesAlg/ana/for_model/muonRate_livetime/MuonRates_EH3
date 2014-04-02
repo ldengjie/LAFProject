@@ -1,0 +1,133 @@
+
+[1mRooFit v3.12 -- Developed by Wouter Verkerke and David Kirkby[0m 
+                Copyright (C) 2000-2009 NIKHEF, University of California & Stanford University
+                All rights reserved, please read http://roofit.sourceforge.net/license.txt
+
+DayaStyle loaded...
+
+Processing calcMuonRate.cc++...
+------------------------------
+Input file:
+/publicfs/dyb/data/userdata/liuyb/LAF/SinglesAlg/run/P13A/Selected_SinglesAlg_EH3_P13A_Muon3500-4500.root
+Output file:
+hist.root
+------------------------------
+
+Info: original time bin width is 1, rebinning width is 24
+Info: original time bin width is 1, rebinning width is 24
+Info: original time bin width is 1, rebinning width is 24
+Info: original time bin width is 1, rebinning width is 24
+DaqTime of EH3 is 17342617(200.725 days)
+Livetime for AD1 is 17247401(199.623 days)
+Livetime for AD2 is 17247596(199.625 days)
+Livetime for AD3 is 17247656(199.626 days)
+Livetime for AD4 is 17247573(199.625 days)
+
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+Trigger rate(>0.7MeV) in EH3-AD1 is 56.062 Hz, isolating cut efficiency = 0.977825
+Trigger rate(>0.7MeV) in EH3-AD2 is 56.5434 Hz, isolating cut efficiency = 0.977636
+Trigger rate(>0.7MeV) in EH3-AD3 is 57.5981 Hz, isolating cut efficiency = 0.977224
+Trigger rate(>0.7MeV) in EH3-AD4 is 57.2479 Hz, isolating cut efficiency = 0.977361
+Correction coefficient of EH3 is 195.196
+Correction coefficient of EH3 is 195.161
+Correction coefficient of EH3 is 195.079
+Correction coefficient of EH3 is 195.105
+====== Muon rate without reduction ... 
+Muon rate in range [20,60] of AD1 is 0.0795485 Hz, muon mean lifetime is 12.5709 s.
+Muon rate in range [20,60] of AD2 is 0.0634591 Hz, muon mean lifetime is 15.7582 s.
+Muon rate in range [20,60] of AD3 is 0.0627361 Hz, muon mean lifetime is 15.9398 s.
+Muon rate in range [20,60] of AD4 is 0.063662 Hz, muon mean lifetime is 15.708 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+====== Muon rate with reduction ... 
+Muon rate in range [20,60] of AD1 is 0.00073501 Hz, muon mean lifetime is 1360.53 s.
+Muon rate in range [20,60] of AD2 is 0.00068323 Hz, muon mean lifetime is 1463.64 s.
+Muon rate in range [20,60] of AD3 is 0.000671583 Hz, muon mean lifetime is 1489.02 s.
+Muon rate in range [20,60] of AD4 is 0.000671179 Hz, muon mean lifetime is 1489.92 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+====== Muon rate without reduction ... 
+Muon rate in range [60,500] of AD1 is 0.418024 Hz, muon mean lifetime is 2.39221 s.
+Muon rate in range [60,500] of AD2 is 0.416502 Hz, muon mean lifetime is 2.40095 s.
+Muon rate in range [60,500] of AD3 is 0.40626 Hz, muon mean lifetime is 2.46148 s.
+Muon rate in range [60,500] of AD4 is 0.41744 Hz, muon mean lifetime is 2.39556 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+====== Muon rate with reduction ... 
+Muon rate in range [60,500] of AD1 is 0.00294333 Hz, muon mean lifetime is 339.752 s.
+Muon rate in range [60,500] of AD2 is 0.00295365 Hz, muon mean lifetime is 338.564 s.
+Muon rate in range [60,500] of AD3 is 0.00288947 Hz, muon mean lifetime is 346.084 s.
+Muon rate in range [60,500] of AD4 is 0.00298836 Hz, muon mean lifetime is 334.632 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+====== Muon rate without reduction ... 
+Muon rate in range [500,1500] of AD1 is 0.531316 Hz, muon mean lifetime is 1.88212 s.
+Muon rate in range [500,1500] of AD2 is 0.534523 Hz, muon mean lifetime is 1.87083 s.
+Muon rate in range [500,1500] of AD3 is 0.540112 Hz, muon mean lifetime is 1.85147 s.
+Muon rate in range [500,1500] of AD4 is 0.53525 Hz, muon mean lifetime is 1.86828 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+====== Muon rate with reduction ... 
+Muon rate in range [500,1500] of AD1 is 0.00696567 Hz, muon mean lifetime is 143.561 s.
+Muon rate in range [500,1500] of AD2 is 0.00707039 Hz, muon mean lifetime is 141.435 s.
+Muon rate in range [500,1500] of AD3 is 0.00700673 Hz, muon mean lifetime is 142.72 s.
+Muon rate in range [500,1500] of AD4 is 0.00709114 Hz, muon mean lifetime is 141.021 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+====== Muon rate without reduction ... 
+Muon rate in range [1500,2500] of AD1 is 0.0168887 Hz, muon mean lifetime is 59.211 s.
+Muon rate in range [1500,2500] of AD2 is 0.0170793 Hz, muon mean lifetime is 58.5504 s.
+Muon rate in range [1500,2500] of AD3 is 0.0178886 Hz, muon mean lifetime is 55.9014 s.
+Muon rate in range [1500,2500] of AD4 is 0.0169576 Hz, muon mean lifetime is 58.9706 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+====== Muon rate with reduction ... 
+Muon rate in range [1500,2500] of AD1 is 0.00204923 Hz, muon mean lifetime is 487.988 s.
+Muon rate in range [1500,2500] of AD2 is 0.00206388 Hz, muon mean lifetime is 484.525 s.
+Muon rate in range [1500,2500] of AD3 is 0.00209023 Hz, muon mean lifetime is 478.417 s.
+Muon rate in range [1500,2500] of AD4 is 0.00204906 Hz, muon mean lifetime is 488.03 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+====== Muon rate without reduction ... 
+Muon rate in range [2500,3500] of AD1 is 0.0036461 Hz, muon mean lifetime is 274.265 s.
+Muon rate in range [2500,3500] of AD2 is 0.00366208 Hz, muon mean lifetime is 273.069 s.
+Muon rate in range [2500,3500] of AD3 is 0.00378115 Hz, muon mean lifetime is 264.47 s.
+Muon rate in range [2500,3500] of AD4 is 0.00366254 Hz, muon mean lifetime is 273.035 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+====== Muon rate with reduction ... 
+Muon rate in range [2500,3500] of AD1 is 0.0010394 Hz, muon mean lifetime is 962.089 s.
+Muon rate in range [2500,3500] of AD2 is 0.00105111 Hz, muon mean lifetime is 951.375 s.
+Muon rate in range [2500,3500] of AD3 is 0.00106997 Hz, muon mean lifetime is 934.61 s.
+Muon rate in range [2500,3500] of AD4 is 0.00104131 Hz, muon mean lifetime is 960.331 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+====== Muon rate without reduction ... 
+Muon rate in range [3500,4500] of AD1 is 0.00157646 Hz, muon mean lifetime is 634.331 s.
+Muon rate in range [3500,4500] of AD2 is 0.00167489 Hz, muon mean lifetime is 597.054 s.
+Muon rate in range [3500,4500] of AD3 is 0.00167276 Hz, muon mean lifetime is 597.815 s.
+Muon rate in range [3500,4500] of AD4 is 0.00159659 Hz, muon mean lifetime is 626.336 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+====== Muon rate with reduction ... 
+Muon rate in range [3500,4500] of AD1 is 0.0010529 Hz, muon mean lifetime is 949.76 s.
+Muon rate in range [3500,4500] of AD2 is 0.00123638 Hz, muon mean lifetime is 808.815 s.
+Muon rate in range [3500,4500] of AD3 is 0.00126636 Hz, muon mean lifetime is 789.665 s.
+Muon rate in range [3500,4500] of AD4 is 0.00119861 Hz, muon mean lifetime is 834.301 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+====== Muon rate without reduction ... 
+Muon rate in range [4500,5000] of AD1 is 0.000578575 Hz, muon mean lifetime is 1728.39 s.
+Muon rate in range [4500,5000] of AD2 is 0.000496407 Hz, muon mean lifetime is 2014.48 s.
+Muon rate in range [4500,5000] of AD3 is 0.000554761 Hz, muon mean lifetime is 1802.58 s.
+Muon rate in range [4500,5000] of AD4 is 0.000580016 Hz, muon mean lifetime is 1724.09 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+====== Muon rate with reduction ... 
+Muon rate in range [4500,5000] of AD1 is 0.000525007 Hz, muon mean lifetime is 1904.74 s.
+Muon rate in range [4500,5000] of AD2 is 0.000445377 Hz, muon mean lifetime is 2245.29 s.
+Muon rate in range [4500,5000] of AD3 is 0.000504595 Hz, muon mean lifetime is 1981.79 s.
+Muon rate in range [4500,5000] of AD4 is 0.000522931 Hz, muon mean lifetime is 1912.3 s.
+....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+(int)0

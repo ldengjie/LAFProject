@@ -1,0 +1,34 @@
+//Load the SelCycler as a service
+LafMain.Dlls += {"SelCycler"};
+SvcMgr.Contents += {"SelCycler"};
+
+//Settings for SelCycler
+SelCycler.Tags = { "ForceTrigTag", "CrossTrigTag", "RpcNoiseTag", "FlasherTag", "AdEnergyTag", "MuonTag" };
+//SelCycler.KeepFirstEvtEachFile = FALSE;
+SelCycler.TimeWindow = { -1e-6, 1e-6};
+
+ForceTrigTag.ApplyVeto  = FALSE;
+CrossTrigTag.ApplyVeto  = FALSE;
+RpcNoiseTag.ApplyVeto   = FALSE;
+FlasherTag.ApplyVeto    = FALSE;
+AdEnergyTag.ApplyVeto   = FALSE;
+MuonTag.ApplyVeto       = FALSE;
+
+FlasherTag.RatioMaxQCut = 0.45;
+FlasherTag.QuadrantCut = 1.;
+
+AdEnergyTag.AdEnergyThreshold = 0.7; // MeV
+
+MuonTag.tagADMuon = FALSE;
+MuonTag.IwsNPmtThreshold = 12;
+MuonTag.OwsNPmtThreshold = 12;
+
+//Set FanCycler as the Cycler of LAF
+LafMain.Cycler = "FanCycler";
+FanCycler.TimeWindow = { -1e-3, 1e-3 };
+
+FanCycler.Tags = { "FanAdMuonTag" };
+FanAdMuonTag.ApplyVeto = FALSE;
+FanAdMuonTag.AdMuonThreshold = 20.; // MeV
+FanAdMuonTag.ShowerMuonThreshold = 2500.; // MeV
+FanAdMuonTag.CoincWindow = { -2e-6, 2e-6 };  // +/-2us

@@ -1,0 +1,84 @@
+//algorithms
+#include "$ALGORITHMSROOT/share/Algorithms.txt"
+#include "$IBDSELECTALGROOT/share/IBDSelect.txt"
+#include "$IBDSELECTALGROOT/share/OffWindow.txt"
+
+//the main cycler
+//#include "$SELCYCLERROOT/share/SelCycler.txt"
+
+LafMain.Dlls += {"SelCycler"};
+SvcMgr.Contents += {"SelCycler"};
+
+// The following tagging tools will be applied before event goes into the main buffer.
+SelCycler.Tags = { "ForceTrigTag", "CrossTrigTag", "RpcNoiseTag", "FlasherTag", "AdEnergyTag", "MuonTag" };
+
+// The main buffer window is -0.1s to 0.1s
+SelCycler.TimeWindow = { -1e-1, 1e-1};
+
+// Don't apply any veto. If the veto flag is set as TRUE, the event will not go into the main buffer.
+ForceTrigTag.ApplyVeto  = FALSE;
+CrossTrigTag.ApplyVeto  = FALSE;
+RpcNoiseTag.ApplyVeto   = FALSE;
+FlasherTag.ApplyVeto    = FALSE;
+AdEnergyTag.ApplyVeto   = FALSE;
+
+// Flasher tag, same as PRL paper.
+FlasherTag.RatioMaxQCut = 0.45;
+FlasherTag.QuadrantCut = 1.;
+FlasherTag.calibPMTFlasherCut = 100.;
+
+// Low energy tag, since we only need AD events with energy > 0.7MeV for IBD selection.
+AdEnergyTag.AdEnergyThreshold = 0.7; // MeV
+
+// Muon tag, same as PRL paper.
+MuonTag.ApplyVeto       = FALSE;
+MuonTag.AdMuonThreshold = 20.; // MeV
+MuonTag.ShowerMuonThreshold = 2500.; // MeV
+MuonTag.IwsNPmtThreshold = 12;
+MuonTag.OwsNPmtThreshold = 12;
+MuonTag.tagRPCMuon = TRUE;
+// Here "tagADMuon" means use AD only to tag muon, no relation to WP muon, different with PRL paper.
+// So it's set as FALSE. See FanCycler below for real AD muon tag.
+MuonTag.tagADMuon = FALSE;
+
+// Muon veto window, same as PRL paper.
+MuonVeto.MuVetoWindow = 6.e-4;  // 600us
+MuonVeto.AdMuVetoWindow = 1.e-3;  // 1ms
+MuonVeto.ShowerMuVetoWindow = 1.;  // 1s
+MuonVeto.PreVetoWindow = 2.e-6;  // 2us
+MuonVeto.useRPCVeto = FALSE;  // RPC muon is not used for veto in PRL paper.
+
+//input service and files
+LafMain.InputSvc = "ReconInputSvc";
+// The PreferredRecTree can be changed to "Event/Rec/AdSimple".
+ReconInputSvc.PreferredRecTree = "Event/Rec/AdScaled";
+ReconInputSvc.PreferredEnergy = "enrec";
+ReconInputSvc.InputFiles = { "/dybfs/rec/P12E/GoodRun/rec/EH1/run21221.list" };
+
+// Set different AD numbers for different EHs.
+GlobalVar.NumADs = 2;
+
+// Set time range for your data period. It only affect the "VS time" plots in the output file.
+LiveTimeSvc.StartTime = "2011-08-14";
+LiveTimeSvc.EndTime = "2012-03-31";
+//LiveTimeSvc.NBins = 5520;
+LiveTimeSvc.BinWidth = 3600.; // second. If this number is set, 
+                              // LiveTimeSvc.NBins will be calculated automatically.
+
+// For AD muon definition, we need a small event buffer to search for related WP muon.
+LafMain.Cycler = "FanCycler";
+FanCycler.TimeWindow = { -1., 1e-1 };
+FanCycler.Tags = { "FanAdMuonTag" };
+FanAdMuonTag.ApplyVeto = FALSE; // "FALSE" means do NOT throw this event from the main buffer
+FanAdMuonTag.AdMuonThreshold = 20.; // MeV
+FanAdMuonTag.ShowerMuonThreshold = 2500.; // MeV
+// the time relation between AD muon and WP muon must be within +/-2us
+FanAdMuonTag.CoincWindow = { -2e-6, 2e-6 };
+
+IBDSelectAlg.SaveTree = True;
+
+LafMain.EvtMax   = 1000000; // -1 means processing all events in the input file list
+LafMain.LogLevel = 3;
+
+//root file (TNtuple, TTree, THist) output
+TOutputSvc.Output = { "FILE1":"eh1_run21221.root" };

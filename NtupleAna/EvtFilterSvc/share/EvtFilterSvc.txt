@@ -1,0 +1,11 @@
+LafMain.Dlls += {"EvtFilterSvc"};
+SvcMgr.Contents += {"EvtFilterSvc"};
+
+//EvtFilterSvc.GenerateRidx = false;
+//EvtFilterSvc.OutputTrees = {
+//    "Event/Rec/AdSimple",
+//    "Event/Rec/AdScaled",
+//    "Event/Rec/RpcSimple",
+//    "Event/Data/CalibStats",
+//    "Event/CalibReadout/CalibReadoutHeader"
+//};

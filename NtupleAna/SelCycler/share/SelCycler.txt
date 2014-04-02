@@ -1,0 +1,24 @@
+LafMain.Cycler = "SelCycler";
+//SelCycler.Tags += { "RpcValidTag" };
+//RpcValidTag.GoodFileList = "RpcGoodFile.list";
+SelCycler.Tags += { "ForceTrigTag", "CrossTrigTag", "RpcNoiseTag", "FlasherTag", "AdEnergyTag", "MuonTag" };
+//SelCycler.KeepFirstEvtEachFile = FALSE;
+SelCycler.TimeWindow = { -1e-1, 1e-1};
+
+ForceTrigTag.ApplyVeto  = FALSE;
+CrossTrigTag.ApplyVeto  = FALSE;
+RpcNoiseTag.ApplyVeto   = FALSE;
+FlasherTag.ApplyVeto    = FALSE;
+AdEnergyTag.ApplyVeto   = FALSE;
+MuonTag.ApplyVeto       = FALSE;
+
+FlasherTag.RatioMaxQCut = 0.45;
+FlasherTag.QuadrantCut = 1.;
+
+AdEnergyTag.AdEnergyThreshold = 0.7; // MeV
+
+MuonTag.AdMuonThreshold = 20.; // MeV
+MuonTag.ShowerMuonThreshold = 1000.; // MeV
+MuonTag.IwsNPmtThreshold = 12;
+MuonTag.OwsNPmtThreshold = 12;
+MuonTag.tagADMuon = FALSE;

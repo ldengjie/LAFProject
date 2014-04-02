@@ -1,0 +1,72 @@
+//#include "$ALGORITHMSROOT/share/Algorithms.txt"
+#include "$LIVETIMESVCROOT/share/LiveTime.txt"
+#include "$MUONVETOROOT/share/MuonVeto.txt"
+//loaded dlls
+LafMain.Dlls = {"Algorithms"};
+
+LafMain.Dlls += {"SimplifiedRoot"};
+AlgMgr.Contents += {"SimplifiedRoot"};
+
+//====================================
+//====================================
+//input service and files
+LafMain.InputSvc = "ReconInputSvc";
+ReconInputSvc.PreferredRecTree = "Event/Rec/AdScaled";
+ReconInputSvc.PreferredEnergy = "enrec";
+//ReconInputSvc.InputFiles = {
+//"/publicfs/dyb/data/rec/P12B/good_files_3sites_Feb17_May11_2012_v1/SITE/runRUNNUM.list" };
+
+ReconInputSvc.InputFiles = {"/publicfs/dyb/user/ningzhe/muon/hvscan/db/SITE/list/RUNNUM.list" };
+
+LafMain.EvtMax   = -1;
+LafMain.LogLevel = 3;
+
+//root file (TNtuple, TTree, THist) output
+TOutputSvc.Output += {"FILE1":"/afs/ihep.ac.cn/users/l/lidj/data/SimplifiedRoot/SITE/runRUNNUM_muon.root" };
+//====================================
+//the cycler
+LafMain.Dlls += {"SelCycler"};
+SvcMgr.Contents += {"SelCycler"};
+
+SelCycler.Tags = { "ForceTrigTag", "CrossTrigTag", "RpcNoiseTag", "FlasherTag", "MuonTag"};
+//SelCycler.Tags += { "RpcValidTag" };
+SelCycler.TimeWindow = { -0.1, 0.1};
+SelCycler.KeepFirstEvtEachFile = TRUE;
+
+//RpcValidTag.GoodFileList ={"/publicfs/dyb/user/ningzhe/muon/hvscan/db/SITE/list/RUNNUM.list"};
+FlasherTag.RatioMaxQCut = 0.45;
+FlasherTag.QuadrantCut = 1.;
+FlasherTag.calibPMTFlasherCut = 100.;
+
+// every tag should be set to ApplyVeto or not
+FlasherTag.ApplyVeto = FALSE;
+CrossTrigTag.ApplyVeto = TRUE;
+ForceTrigTag.ApplyVeto = TRUE;
+RpcNoiseTag.ApplyVeto = TRUE;
+MuonTag.ApplyVeto = FALSE;
+
+//Set FanCycler as the Cycler of LAF
+LafMain.Cycler = "FanCycler";
+FanCycler.TimeWindow = { -10., 1e-1 };
+
+FanCycler.Tags = { "FanAdMuonTag" };
+FanAdMuonTag.ApplyVeto = FALSE;
+FanAdMuonTag.AdMuonThreshold = 20.; // MeV
+FanAdMuonTag.ShowerMuonThreshold = 2500.; // MeV
+FanAdMuonTag.CoincWindow = { -2e-6, 2e-6 };  // +/-2us
+
+GlobalVar.NumADs = 3;
+//===================================
+//MuonVeto related configuration
+MuonTag.IwsNPmtThreshold = 12;
+MuonTag.OwsNPmtThreshold = 12;
+MuonTag.tagRPCMuon = FALSE;
+MuonTag.tagADMuon  = FALSE;
+MuonTag.AdMuonThreshold = 20.; // MeV
+MuonTag.ShowerMuonThreshold = 2500.; // MeV
+
+MuonVeto.MuVetoWindow = 2.e-4; // s
+MuonVeto.AdMuVetoWindow = 2.e-4; // s
+MuonVeto.ShowerMuVetoWindow = 2.e-4; // s
+MuonVeto.PreVetoWindow = 2.e-6; // s
+MuonVeto.useRPCVeto = FALSE;

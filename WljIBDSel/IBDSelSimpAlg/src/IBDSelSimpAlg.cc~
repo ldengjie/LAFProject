@@ -1,0 +1,1191 @@
+#include "IBDSelSimpAlg.h"
+#include "LafKernel/AlgFactory.h"
+#include "LafKernel/GlobalVar.h"
+#include "LafKernel/PhyEvent/RecReadout.h"
+#include <iostream>
+#include "TMath.h"
+#include "TNtuple.h"
+
+using namespace std;
+
+DECLARE_ALGORITHM(IBDSelSimpAlg);
+
+IBDSelSimpAlg::IBDSelSimpAlg(const std::string& name)
+: AlgBase(name)
+{
+  setOption("PromptEngLow",m_eplow);  
+  setOption("PromptEngHigh",m_ephigh);  
+  setOption("DelayedEngLow",m_edlow);  
+  setOption("DelayedEngHigh",m_edhigh);  
+  setOption("DtLow",m_dtlow);  
+  setOption("DtHigh",m_dthigh);  
+
+  OptionParser::setOption(name, "MuVetoWindow",m_muVetoWin=2.e-4);
+  OptionParser::setOption(name, "AdMuVetoWindow",m_adMuVetoWin=1.e-3);
+  OptionParser::setOption(name, "ShowerMuVetoWindow",m_showerMuVetoWin=1.0);
+  OptionParser::setOption(name, "PreVetoWindow",m_preVetoWin=2.e-6);
+  OptionParser::setOption(name, "drawHists", m_drawHists=true);
+  OptionParser::setOption(name, "savePreAdMus", m_savePreAdMus=true);
+
+  OptionParser::setOption(name, "AdMuonThreshold",m_adMuonThr=20.);
+  OptionParser::setOption(name, "ShowerMuonThreshold",m_showerMuonThr=2500.);
+
+  OptionParser::setOption(name, "useRPCVeto", m_useRPCVeto=true);
+  OptionParser::setOption(name, "adMuonBufTh", m_adMuonBufThr=500.);
+
+  for(int det=1;det<=GlobalVar::NumADs;det++) {
+    m_adBuf[det-1].clear();    
+    m_adVetoedBuf[det-1].clear();    
+    m_adMuonBuf[det-1].clear();    
+    m_neuBuf[det-1].clear();    
+    m_neuVetoedBuf[det-1].clear();    
+  }
+
+  m_muonVeto = MuonVeto::instance();
+}
+
+bool IBDSelSimpAlg::initialize()
+{
+  // ================ Define histograms ========================
+  // Binning
+  double rnorm = 1.;
+  // calculate muon E bins
+  const int nBins = 200;
+  double xlow = 0.1, xup = 6000.5;
+  eBinWt = new double[nBins+1];
+  double muonEBins[nBins+1] = {0.0};
+  double muEBinWidth = (TMath::Log10(xup)-TMath::Log10(xlow))/nBins;
+
+  for(int i=1; i<=nBins; i++) {
+    muonEBins[i] = xlow*TMath::Power(10, muEBinWidth*i);
+    eBinWt[i] = rnorm/(muonEBins[i]-muonEBins[i-1]);
+  }
+
+  const int nTimeBinNum = 6000;
+  double timeBins[nTimeBinNum+1];
+  double timeBinWidth[nTimeBinNum+1];
+  timeBins[0] = 1313280000;
+  for(int i=0; i<=nTimeBinNum; i++) {
+    timeBinWidth[i] = 3600.;
+    if(i>0) timeBins[i] = timeBins[i-1] + timeBinWidth[i];
+  }
+
+  // histograms
+    TString histname;
+
+    histname = "rpcMuonRate"; 
+    rpcMuonRate = new TH1D(histname, "RPC muon rate", nTimeBinNum, timeBins);
+    ntupleSvc()->attach("FILE1/wenlj", rpcMuonRate);
+
+    histname = "IWSMuonRate"; 
+    IWSMuonRate = new TH1D(histname, "IWS muon rate", nTimeBinNum, timeBins);
+    ntupleSvc()->attach("FILE1/wenlj", IWSMuonRate);
+
+    histname = "OWSMuonRate"; 
+    OWSMuonRate = new TH1D(histname, "OWS muon rate", nTimeBinNum, timeBins);
+    ntupleSvc()->attach("FILE1/wenlj", OWSMuonRate);
+
+    for(Int_t i=1; i<=GlobalVar::NumADs; i++) {
+      histname = "ibdRate"; 
+      histname += "AD"; histname += i;
+      ibdRate[i-1] = new TH1D(histname, "ibdRate", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", ibdRate[i-1]);
+
+      histname = "ibdPosE"; 
+      histname += "AD"; histname += i;
+      ibdPosE[i-1] = new TH1D(histname, "ibdPosE", 120, 0, 12.);
+      ntupleSvc()->attach("FILE1/wenlj", ibdPosE[i-1]);
+
+      histname = "ibdNeuE"; 
+      histname += "AD"; histname += i;
+      ibdNeuE[i-1] = new TH1D(histname, "ibdNeuE", 240, 0, 12.);
+      ntupleSvc()->attach("FILE1/wenlj", ibdNeuE[i-1]);
+
+      histname = "ibdTime"; 
+      histname += "AD"; histname += i;
+      ibdTime[i-1] = new TH1D(histname, "ibdTime", 200, 0, 200);
+      ntupleSvc()->attach("FILE1/wenlj", ibdTime[i-1]);
+    }
+
+  if(m_drawHists) {
+    for(Int_t i=1; i<=GlobalVar::NumADs; i++) {
+      // AD triggers spectrum, accounting for daily variation
+      histname = "triggerSpecAll"; 
+      histname += "AD"; histname += i;
+      triggerSpecAll[i-1] = new TH1D(histname, "All AD triggers", 8000, 0.0, 400.0);
+      histname += "Log";
+      triggerSpecAllLog[i-1] = new TH1D(histname, "All AD triggers", nBins, muonEBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerSpecAll[i-1]);
+      ntupleSvc()->attach("FILE1/wenlj", triggerSpecAllLog[i-1]);
+
+      // AD all triggers spectrum after pool muon veto
+      histname = "triggerSpecAllAfterPoolMuonVeto"; 
+      histname += "AD"; histname += i;
+      triggerSpecAllAfterPoolMuonVeto[i-1] = new TH1D(histname, "All AD triggers after pool muon veto", 8000, 0.0, 400.0);
+      histname += "Log";
+      triggerSpecAllAfterPoolMuonVetoLog[i-1] = new TH1D(histname, "All AD triggers after pool muon veto", nBins, muonEBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerSpecAllAfterPoolMuonVeto[i-1]);
+      ntupleSvc()->attach("FILE1/wenlj", triggerSpecAllAfterPoolMuonVetoLog[i-1]);
+
+      // AD all triggers spectrum after shower muon veto
+      histname = "triggerSpecAllAfterShowerMuonVeto"; 
+      histname += "AD"; histname += i;
+      triggerSpecAllAfterShowerMuonVeto[i-1] = new TH1D(histname, "All AD triggers after shower muon veto", 8000, 0.0, 400.0);
+      histname += "Log";
+      triggerSpecAllAfterShowerMuonVetoLog[i-1] = new TH1D(histname, "All AD triggers after shower muon veto", nBins, muonEBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerSpecAllAfterShowerMuonVeto[i-1]);
+      ntupleSvc()->attach("FILE1/wenlj", triggerSpecAllAfterShowerMuonVetoLog[i-1]);
+
+      // AD all triggers spectrum after flasher cut 
+      histname = "triggerSpecAllAfterFlasherRemove"; 
+      histname += "AD"; histname += i;
+      triggerSpecAllCutFlasher[i-1] = new TH1D(histname, "All AD triggers after flasher remove", 8000, 0.0, 400.0);
+      histname += "Log";
+      triggerSpecAllCutFlasherLog[i-1] = new TH1D(histname, "All AD triggers after flasher remove", nBins, muonEBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerSpecAllCutFlasher[i-1]);
+      ntupleSvc()->attach("FILE1/wenlj", triggerSpecAllCutFlasherLog[i-1]);
+
+      // Low E AD singles spectra after pool muon veto, (0.7 MeV, 12 MeV)
+      histname = "lowESinglesSpecAfterPoolMuonVeto"; 
+      histname += "AD"; histname += i;
+      lowESinglesSpecAfterPoolMuonVeto[i-1] = new TH1D(histname, "(0.7MeV, 12MeV) singles after pool muon veto", 240, 0.0, 12.0);
+      ntupleSvc()->attach("FILE1/wenlj", lowESinglesSpecAfterPoolMuonVeto[i-1]);
+
+      // Low E AD singles spectra after shower muon veto, (0.7 MeV, 12 MeV)
+      histname = "lowESinglesSpecAfterShowerMuonVeto"; 
+      histname += "AD"; histname += i;
+      lowESinglesSpecAfterShowerMuonVeto[i-1] = new TH1D(histname, "(0.7MeV, 12MeV) singles after shower muon veto", 240, 0.0, 12.0);
+      ntupleSvc()->attach("FILE1/wenlj", lowESinglesSpecAfterShowerMuonVeto[i-1]);
+
+      // neutron like singles spectra after pool muon veto, (6.0MeV, 12.0MeV)
+      histname = "neuSinglesSpecAfterPoolMuonVeto"; 
+      histname += "AD"; histname += i;
+      neuSinglesSpecAfterPoolMuonVeto[i-1] = new TH1D(histname, "(6.0MeV, 12MeV) singles after pool muon veto", 240, 0.0, 12.0);
+      ntupleSvc()->attach("FILE1/wenlj", neuSinglesSpecAfterPoolMuonVeto[i-1]);
+
+      // neutron like singles spectra after shower muon veto, (6.0MeV, 12.0MeV)
+      histname = "neuSinglesSpecAfterShowerMuonVeto"; 
+      histname += "AD"; histname += i;
+      neuSinglesSpecAfterShowerMuonVeto[i-1] = new TH1D(histname, "(6.0MeV, 12MeV) singles after shower muon veto", 240, 0.0, 12.0);
+      ntupleSvc()->attach("FILE1/wenlj", neuSinglesSpecAfterShowerMuonVeto[i-1]);
+
+      // Nevt spectrum
+      histname = "hNevt"; 
+      histname += "AD"; histname += i;
+      hNevt[i-1] = new TH1D(histname, "hNevt", 200, 0, 200);
+      ntupleSvc()->attach("FILE1/wenlj", hNevt[i-1]);
+
+      // High Energy AD singles spectrum
+      histname = "highESinglesSpecAfterPoolMuonVeto"; 
+      histname += "AD"; histname += i;
+      highESinglesSpecAfterPoolMuonVeto[i-1] = new TH1D(histname, ">12MeV singles after pool muon veto", 20000, 0, 400.);
+      ntupleSvc()->attach("FILE1/wenlj", highESinglesSpecAfterPoolMuonVeto[i-1]);
+
+      histname = "highESinglesSpecAfterShowerMuonVeto"; 
+      histname += "AD"; histname += i;
+      highESinglesSpecAfterShowerMuonVeto[i-1] = new TH1D(histname, ">12MeV singles after shower muon veto", 20000, 0, 400.);
+      ntupleSvc()->attach("FILE1/wenlj", highESinglesSpecAfterShowerMuonVeto[i-1]);
+
+      // muon Spectrum
+      histname = "muonSpec"; 
+      histname += "AD"; histname += i;
+      muonSpec[i-1] = new TH1D(histname, "muonSpec", nBins, muonEBins);
+      ntupleSvc()->attach("FILE1/wenlj", muonSpec[i-1]);
+    
+      // all low E trigger Rate, (0.7MeV, 12MeV)
+      histname = "triggerRateLowAll"; 
+      histname += "AD"; histname += i;
+      triggerRateLowAll[i-1] = new TH1D(histname, "Trigger rate in (0.7MeV, 12MeV)", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRateLowAll[i-1]);
+
+      // low E trigger Rate after pool muon Veto, (0.7MeV, 12MeV)
+      histname = "triggerRateLowAfterPoolMuonVeto"; 
+      histname += "AD"; histname += i;
+      triggerRateLowAfterPoolMuonVeto[i-1] = new TH1D(histname, "Trigger rate in (0.7MeV, 12MeV) after pool muon veto", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRateLowAfterPoolMuonVeto[i-1]);
+
+      // low E trigger Rate after shower muon Veto, (0.7MeV, 12MeV)
+      histname = "triggerRateLowAfterShowerMuonVeto"; 
+      histname += "AD"; histname += i;
+      triggerRateLowAfterShowerMuonVeto[i-1] = new TH1D(histname, "Trigger rate in (0.7MeV, 12MeV) after shower muon veto", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRateLowAfterShowerMuonVeto[i-1]);
+
+      // low E trigger Rate after flasher cut, (0.7MeV, 12MeV)
+      histname = "triggerRateLowAfterFlasherRemove"; 
+      histname += "AD"; histname += i;
+      triggerRateLowCutFlasher[i-1] = new TH1D(histname, "Trigger rate in (0.7MeV, 12MeV) after flahser remove", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRateLowCutFlasher[i-1]);
+
+      // all high E trigger rate, (6.0MeV, 12.0MeV) 
+      histname = "triggerRateHighAll"; 
+      histname += "AD"; histname += i;
+      triggerRateHighAll[i-1] = new TH1D(histname, "Trigger rate in (6.0MeV, 12MeV)", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRateHighAll[i-1]);
+
+      // high E trigger rate after pool muon veto, (6.0MeV, 12.0MeV) 
+      histname = "triggerRateHighAfterPoolMuonVeto"; 
+      histname += "AD"; histname += i;
+      triggerRateHighAfterPoolMuonVeto[i-1] = new TH1D(histname, "Trigger rate in (6.0MeV, 12MeV) after pool muon veto", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRateHighAfterPoolMuonVeto[i-1]);
+
+      // high E trigger rate after shower muon veto, (6.0MeV, 12.0MeV) 
+      histname = "triggerRateHighAfterShowerMuonVeto"; 
+      histname += "AD"; histname += i;
+      triggerRateHighAfterShowerMuonVeto[i-1] = new TH1D(histname, "Trigger rate in (6.0MeV, 12MeV) after shower muon veto", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRateHighAfterShowerMuonVeto[i-1]);
+
+      // high E trigger rate after flasher cut, (6.0MeV, 12.0MeV) 
+      histname = "triggerRateHighAfterFlasherRemove"; 
+      histname += "AD"; histname += i;
+      triggerRateHighCutFlasher[i-1] = new TH1D(histname, "Trigger rate in (6.0MeV, 12MeV) after flasher remove", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRateHighCutFlasher[i-1]);
+
+      // all AD triggers rate
+      histname = "triggerRateAll"; 
+      histname += "AD"; histname += i;
+      triggerRateAll[i-1] = new TH1D(histname, "Rate of all triggers", nTimeBinNum, timeBins); 
+      ntupleSvc()->attach("FILE1/wenlj", triggerRateAll[i-1]);
+
+      // all AD triggers rate after pool muon veto
+      histname = "triggerRateAllAfterPoolMuonVeto"; 
+      histname += "AD"; histname += i;
+      triggerRateAllAfterPoolMuonVeto[i-1] = new TH1D(histname, "Rate of all riggers after pool muon veto", nTimeBinNum, timeBins); 
+      ntupleSvc()->attach("FILE1/wenlj", triggerRateAllAfterPoolMuonVeto[i-1]);
+
+      // all AD triggers rate after shower muon veto
+      histname = "triggerRateAllAfterShowerMuonVeto"; 
+      histname += "AD"; histname += i;
+      triggerRateAllAfterShowerMuonVeto[i-1] = new TH1D(histname, "Rate of all triggers after shower muon veto", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRateAllAfterShowerMuonVeto[i-1]);
+
+      // all AD triggers rate after flasher cut
+      histname = "triggerRateAllAfterFlasherRemove"; 
+      histname += "AD"; histname += i;
+      triggerRateAllCutFlasher[i-1] = new TH1D(histname, "Rate of all triggers after flasher remove", nTimeBinNum, timeBins); 
+      ntupleSvc()->attach("FILE1/wenlj", triggerRateAllCutFlasher[i-1]);
+
+      // low E singles rate after pool muon veto, (0.7MeV, 12MeV)
+      histname = "lowESinglesRateAfterPoolMuonVeto"; 
+      histname += "AD"; histname += i;
+      lowESinglesRateAfterPoolMuonVeto[i-1] = new TH1D(histname, "Rate of (0.7MeV, 12MeV) singles after pool muon veto", nTimeBinNum, timeBins); 
+      ntupleSvc()->attach("FILE1/wenlj", lowESinglesRateAfterPoolMuonVeto[i-1]);
+      
+      // low E singles rate after pool muon veto, (0.7MeV, 12MeV)
+      histname = "lowESinglesRateAfterShowerMuonVeto"; 
+      histname += "AD"; histname += i;
+      lowESinglesRateAfterShowerMuonVeto[i-1] = new TH1D(histname, "Rate of (0.7MeV, 12MeV) singles after shower muon veto", nTimeBinNum, timeBins); 
+      ntupleSvc()->attach("FILE1/wenlj", lowESinglesRateAfterShowerMuonVeto[i-1]);
+      
+      // neutron like singles rate after pool muon veto, (6.0MeV, 12MeV)
+      histname = "neuSinglesRateAfterPoolMuonVeto"; 
+      histname += "AD"; histname += i;
+      neuSinglesRateAfterPoolMuonVeto[i-1] = new TH1D(histname, "Rate of (6.0MeV, 12MeV) singles after pool muon veto", nTimeBinNum, timeBins); 
+      ntupleSvc()->attach("FILE1/wenlj", neuSinglesRateAfterPoolMuonVeto[i-1]);
+      
+      // neutron like singles rate after pool muon veto, (6.0MeV, 12MeV)
+      histname = "neuSinglesRateAfterShowerMuonVeto"; 
+      histname += "AD"; histname += i;
+      neuSinglesRateAfterShowerMuonVeto[i-1] = new TH1D(histname, "Rate of (6.0MeV, 12MeV) singles after shower muon veto", nTimeBinNum, timeBins); 
+      ntupleSvc()->attach("FILE1/wenlj", neuSinglesRateAfterShowerMuonVeto[i-1]);
+      
+      // High Energy AD singles rate, >12MeV, after pool muon veto
+      histname = "highESinglesRateAfterPoolMuonVeto"; 
+      histname += "AD"; histname += i;
+      highESinglesRateAfterPoolMuonVeto[i-1] = new TH1D(histname, "Rate of >12MeV singles after pool muon veto", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", highESinglesRateAfterPoolMuonVeto[i-1]);
+
+      // High Energy AD singles rate, >12MeV, after shower muon veto
+      histname = "highESinglesRateAfterShowerMuonVeto"; 
+      histname += "AD"; histname += i;
+      highESinglesRateAfterShowerMuonVeto[i-1] = new TH1D(histname, "Rate of >12MeV singles after shower muon veto", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", highESinglesRateAfterShowerMuonVeto[i-1]);
+
+      // AD muon rate
+      histname = "adMuonRate"; 
+      histname += "AD"; histname += i;
+      adMuonRate[i-1] = new TH1D(histname, "AD muon rate", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", adMuonRate[i-1]);
+
+      // shower muon rate
+      histname = "showerMuonRate"; 
+      histname += "AD"; histname += i;
+      showerMuonRate[i-1] = new TH1D(histname, "Shower muon rate", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", showerMuonRate[i-1]);
+
+      // flasher rate all
+      histname = "flasherRate";
+      histname += "AD"; histname += i;
+      flasherRate[0][i-1] = new TH1D(histname, "flasherRate", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", flasherRate[0][i-1]);
+
+      // flasher rate  > 0.7MeV
+      histname = "flasherRate_gt700keV_";
+      histname += "AD"; histname += i;
+      flasherRate[1][i-1] = new TH1D(histname, "flasher rate in E>0.7MeV", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", flasherRate[1][i-1]);
+
+      // flasher rate  > 1.0MeV
+      histname = "flasherRate_gt1MeV_";
+      histname += "AD"; histname += i;
+      flasherRate[2][i-1] = new TH1D(histname, "flasher rate in E>1MeV", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", flasherRate[2][i-1]);
+
+      // flasher rate in (6.0MeV, 12MeV)
+      histname = "flasherRate_neuE_";
+      histname += "AD"; histname += i;
+      flasherRate[3][i-1] = new TH1D(histname, "flasher rate in 6MeV<E<12MeV", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", flasherRate[3][i-1]);
+
+      // flasher rate in >12MeV
+      histname = "flasherRate_gt12MeV_";
+      histname += "AD"; histname += i;
+      flasherRate[4][i-1] = new TH1D(histname, "flasher rate in E>12MeV", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", flasherRate[4][i-1]);
+
+      // trigger rate in >1MeV, after pool muon veto
+      histname = "triggerRate_gt1MeV_";
+      histname += "AD"; histname += i;
+      triggerRate[1][i-1] = new TH1D(histname, "trigger rate in E>1MeV, after pool muon veto", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRate[1][i-1]);
+
+      // trigger rate in >1.5MeV, after pool muon veto
+      histname = "triggerRate_gt1.5MeV_";
+      histname += "AD"; histname += i;
+      triggerRate[2][i-1] = new TH1D(histname, "trigger rate in E>1.5MeV, after pool muon veto", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRate[2][i-1]);
+
+      // trigger rate in >2MeV, after pool muon veto
+      histname = "triggerRate_gt2MeV_";
+      histname += "AD"; histname += i;
+      triggerRate[3][i-1] = new TH1D(histname, "trigger rate in E>2MeV, after pool muon veto", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRate[3][i-1]);
+
+      // trigger rate in >2.5MeV, after pool muon veto
+      histname = "triggerRate_gt2.5MeV_";
+      histname += "AD"; histname += i;
+      triggerRate[4][i-1] = new TH1D(histname, "trigger rate in E>2.5MeV, after pool muon veto", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRate[4][i-1]);
+
+      // trigger rate in >3MeV, after pool muon veto
+      histname = "triggerRate_gt3MeV_";
+      histname += "AD"; histname += i;
+      triggerRate[5][i-1] = new TH1D(histname, "trigger rate in E>3MeV, after pool muon veto", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRate[5][i-1]);
+
+      // trigger rate in >3.5MeV, after pool muon veto
+      histname = "triggerRate_gt3.5MeV_";
+      histname += "AD"; histname += i;
+      triggerRate[6][i-1] = new TH1D(histname, "trigger rate in E>3.5MeV, after pool muon veto", nTimeBinNum, timeBins);
+      ntupleSvc()->attach("FILE1/wenlj", triggerRate[6][i-1]);
+
+      histname = "coinc2d_";
+      histname += "AD"; histname += i;
+      coinc2d[i-1] = new TH2D(histname, "Prompt-delayed coincidence", 200, 0, 20., 200, 0, 20.);
+      ntupleSvc()->attach("FILE1/wenlj", coinc2d[i-1]);
+    }
+  }
+
+  m_buffer = dynamic_cast<PhyEventBuf*>(service("Cycler"));
+
+  // =======================================================================================
+  m_ibdTree = ntupleSvc()->bookTree("FILE2/ibdTree/ibdTree", "ibdTree");
+  m_ibdTree->Branch("det", &m_det, "det/I"); 
+  // number of events in the block
+  m_ibdTree->Branch("isVetoed", &m_isVetoed, "isVetoed/I"); 
+  m_ibdTree->Branch("isIbd", &m_isIbd, "isIbd/I"); 
+  m_ibdTree->Branch("Nevt", &m_Nevt, "Nevt/I"); 
+  m_ibdTree->Branch("TrigType", &m_TrigType, "TrigType[Nevt]/I"); 
+  // TrigSec of the first event in the block
+  m_ibdTree->Branch("fstTrigSec", &m_fstTrigSec, "fstTrigSec/I"); 
+  // TrigNanoSec of the first event in the block
+  m_ibdTree->Branch("fstTrigNanoSec", &m_fstTrigNanoSec, "fstTrigNanoSec/I"); 
+
+  // time2lastADEvt, time2postADEvt
+  m_ibdTree->Branch("t2preADEvt",  &m_t2preADEvt,  "t2preADEvt/D");
+  m_ibdTree->Branch("preADEvtE",  &m_preADEvtE,  "preADEvtE/F");
+  m_ibdTree->Branch("t2nextADEvt", &m_t2nextADEvt, "t2nextADEvt/D");
+  m_ibdTree->Branch("nextADEvtE", &m_nextADEvtE, "nextADEvtE/F");
+
+  // time2muon
+  m_ibdTree->Branch("t2preRPCMuon", &m_t2preRPCMuon, "t2preRPCMuon[Nevt]/F"); 
+  m_ibdTree->Branch("t2preIWSMuon", &m_t2preIWSMuon, "t2preIWSMuon[Nevt]/F"); 
+  m_ibdTree->Branch("t2preOWSMuon", &m_t2preOWSMuon, "t2preOWSMuon[Nevt]/F"); 
+  m_ibdTree->Branch("t2nextIWSMuon", &m_t2nextIWSMuon, "t2nextIWSMuon[Nevt]/F"); 
+  m_ibdTree->Branch("t2nextOWSMuon", &m_t2nextOWSMuon, "t2nextOWSMuon[Nevt]/F"); 
+  m_ibdTree->Branch("t2nextRPCMuon", &m_t2nextRPCMuon, "t2nextRPCMuon[Nevt]/F"); 
+  m_ibdTree->Branch("t2nonShowerMuon", &m_t2nonShowerMuon, "t2nonShowerMuon[Nevt]/F"); 
+  m_ibdTree->Branch("t2showerMuon", &m_t2showerMuon, "t2showerMuon[Nevt]/F"); 
+  m_ibdTree->Branch("t2nextNonShowerMuon", &m_t2nextNonShowerMuon, "t2nextNonShowerMuon[Nevt]/F"); 
+
+  m_ibdTree->Branch("preNonShowerMuonE", &m_preNonShowerMuonE, "preNonShowerMuonE[Nevt]/F"); 
+  m_ibdTree->Branch("preShowerMuonE", &m_preShowerMuonE, "preShowerMuonE[Nevt]/F"); 
+
+  // vertex
+  m_ibdTree->Branch("X", &m_X, "X[Nevt]/F");
+  m_ibdTree->Branch("Y", &m_Y, "Y[Nevt]/F");
+  m_ibdTree->Branch("Z", &m_Z, "Z[Nevt]/F");
+
+  // Flasher discriminators
+  m_ibdTree->Branch("MaxQ", &m_MaxQ, "MaxQ[Nevt]/F");
+  m_ibdTree->Branch("Quadrant", &m_Quadrant, "Quadrant[Nevt]/F");
+  m_ibdTree->Branch("middleTimeRMS", &m_middleTimeRMS, "middleTimeRMS[Nevt]/F");
+  m_ibdTree->Branch("m_maxQ_2inchPMT", &m_maxQ_2inchPMT, "m_maxQ_2inchPMT[Nevt]/F");
+  m_ibdTree->Branch("m_Column_2inchPMT", &m_Column_2inchPMT, "m_Column_2inchPMT[Nevt]/F");
+  //m_ibdTree->Branch("maxqRing", &m_maxqRing, "maxqRing[Nevt]/I");
+  //m_ibdTree->Branch("maxqCol", &m_maxqCol, "maxqCol[Nevt]/I");
+  m_ibdTree->Branch("nPmt", &m_nPmt, "nPmt[Nevt]/I");
+
+  // Energy
+  m_ibdTree->Branch("Energy",  &m_Energy,  "Energy[Nevt]/F"); 
+  m_ibdTree->Branch("rawEvis", &m_rawEvis, "rawEvis[Nevt]/F"); 
+  m_ibdTree->Branch("enrec",   &m_enrec,   "enrec[Nevt]/F"); 
+  m_ibdTree->Branch("eprec",   &m_eprec,   "eprec[Nevt]/F"); 
+  m_ibdTree->Branch("scaledE", &m_scaledE, "scaledE[Nevt]/F"); 
+
+  // time interval between the two nearby events in the block,
+  // deltaT[0] is 0
+  m_ibdTree->Branch("deltaT", &m_deltaT, "deltaT[Nevt]/D"); 
+
+  // file number and readout number
+  m_ibdTree->Branch("fileSeqNum", &m_fileSeqNum, "fileSeqNum[Nevt]/I");
+  m_ibdTree->Branch("lclRoNum", &m_lclRoNum, "lclRoNum[Nevt]/I");
+ 
+  // preceding muon time and energy, for Li9/He8 study
+  if(m_savePreAdMus) {
+    m_ibdTree->Branch("t2preAdMus", &m_t2preAdMus, "t2preAdMus[600]/F");
+    m_ibdTree->Branch("preAdMusE", &m_preAdMusE, "preAdMusE[600]/F");
+  }
+
+  // =======================================================================================
+  m_swapIbdTree = ntupleSvc()->bookTree("FILE2/swapIbdTree/swapIbdTree", "swapIbdTree");
+  m_swapIbdTree->Branch("det", &m_det, "det/I"); 
+  // number of events in the block
+  m_swapIbdTree->Branch("isVetoed", &m_isVetoed, "isVetoed/I"); 
+  m_swapIbdTree->Branch("isIbd", &m_isIbd, "isIbd/I"); 
+  m_swapIbdTree->Branch("Nevt", &m_Nevt, "Nevt/I"); 
+  m_swapIbdTree->Branch("TrigType", &m_TrigType, "TrigType[Nevt]/I"); 
+  // TrigSec of the first event in the block
+  m_swapIbdTree->Branch("fstTrigSec", &m_fstTrigSec, "fstTrigSec/I"); 
+  // TrigNanoSec of the first event in the block
+  m_swapIbdTree->Branch("fstTrigNanoSec", &m_fstTrigNanoSec, "fstTrigNanoSec/I"); 
+
+  // time2lastADEvt, time2postADEvt
+  m_swapIbdTree->Branch("t2preADEvt",  &m_t2preADEvt,  "t2preADEvt/D");
+  m_swapIbdTree->Branch("preADEvtE",  &m_preADEvtE,  "preADEvtE/F");
+  m_swapIbdTree->Branch("t2nextADEvt", &m_t2nextADEvt, "t2nextADEvt/D");
+  m_swapIbdTree->Branch("nextADEvtE", &m_nextADEvtE, "nextADEvtE/F");
+
+  // time2muon
+  m_swapIbdTree->Branch("t2preRPCMuon", &m_t2preRPCMuon, "t2preRPCMuon[Nevt]/F"); 
+  m_swapIbdTree->Branch("t2preIWSMuon", &m_t2preIWSMuon, "t2preIWSMuon[Nevt]/F"); 
+  m_swapIbdTree->Branch("t2preOWSMuon", &m_t2preOWSMuon, "t2preOWSMuon[Nevt]/F"); 
+  m_swapIbdTree->Branch("t2nextIWSMuon", &m_t2nextIWSMuon, "t2nextIWSMuon[Nevt]/F"); 
+  m_swapIbdTree->Branch("t2nextOWSMuon", &m_t2nextOWSMuon, "t2nextOWSMuon[Nevt]/F"); 
+  m_swapIbdTree->Branch("t2nextRPCMuon", &m_t2nextRPCMuon, "t2nextRPCMuon[Nevt]/F"); 
+  m_swapIbdTree->Branch("t2nonShowerMuon", &m_t2nonShowerMuon, "t2nonShowerMuon[Nevt]/F"); 
+  m_swapIbdTree->Branch("t2showerMuon", &m_t2showerMuon, "t2showerMuon[Nevt]/F"); 
+  m_swapIbdTree->Branch("t2nextNonShowerMuon", &m_t2nextNonShowerMuon, "t2nextNonShowerMuon[Nevt]/F"); 
+
+  m_swapIbdTree->Branch("preNonShowerMuonE", &m_preNonShowerMuonE, "preNonShowerMuonE[Nevt]/F"); 
+  m_swapIbdTree->Branch("preShowerMuonE", &m_preShowerMuonE, "preShowerMuonE[Nevt]/F"); 
+
+  // vertex
+  m_swapIbdTree->Branch("X", &m_X, "X[Nevt]/F");
+  m_swapIbdTree->Branch("Y", &m_Y, "Y[Nevt]/F");
+  m_swapIbdTree->Branch("Z", &m_Z, "Z[Nevt]/F");
+
+  // Flasher discriminators
+  m_swapIbdTree->Branch("MaxQ", &m_MaxQ, "MaxQ[Nevt]/F");
+  m_swapIbdTree->Branch("Quadrant", &m_Quadrant, "Quadrant[Nevt]/F");
+  m_swapIbdTree->Branch("middleTimeRMS", &m_middleTimeRMS, "middleTimeRMS[Nevt]/F");
+  m_swapIbdTree->Branch("m_maxQ_2inchPMT", &m_maxQ_2inchPMT, "m_maxQ_2inchPMT[Nevt]/F");
+  m_swapIbdTree->Branch("m_Column_2inchPMT", &m_Column_2inchPMT, "m_Column_2inchPMT[Nevt]/F");
+  //m_swapIbdTree->Branch("maxqRing", &m_maxqRing, "maxqRing[Nevt]/I");
+  //m_swapIbdTree->Branch("maxqCol", &m_maxqCol, "maxqCol[Nevt]/I");
+  m_swapIbdTree->Branch("nPmt", &m_nPmt, "nPmt[Nevt]/I");
+
+  // Energy
+  m_swapIbdTree->Branch("Energy",  &m_Energy,  "Energy[Nevt]/F"); 
+  m_swapIbdTree->Branch("rawEvis", &m_rawEvis, "rawEvis[Nevt]/F"); 
+  m_swapIbdTree->Branch("enrec",   &m_enrec,   "enrec[Nevt]/F"); 
+  m_swapIbdTree->Branch("eprec",   &m_eprec,   "eprec[Nevt]/F"); 
+  m_swapIbdTree->Branch("scaledE", &m_scaledE, "scaledE[Nevt]/F"); 
+
+  // time interval between the two nearby events in the block,
+  // deltaT[0] is 0
+  m_swapIbdTree->Branch("deltaT", &m_deltaT, "deltaT[Nevt]/D"); 
+
+  // file number and readout number
+  m_swapIbdTree->Branch("fileSeqNum", &m_fileSeqNum, "fileSeqNum[Nevt]/I");
+  m_swapIbdTree->Branch("lclRoNum", &m_lclRoNum, "lclRoNum[Nevt]/I");
+ 
+  // preceding muon time and energy, for Li9/He8 study
+  if(m_savePreAdMus) {
+    m_swapIbdTree->Branch("t2preAdMus", &m_t2preAdMus, "t2preAdMus[600]/F");
+    m_swapIbdTree->Branch("preAdMusE", &m_preAdMusE, "preAdMusE[600]/F");
+  }
+
+  // =============================================================================
+  m_neuTree = ntupleSvc()->bookTree("FILE2/neuTree/neuTree", "neuTree");
+  m_neuTree->Branch("det", &m_det, "det/I"); 
+  // number of events in the block
+  m_neuTree->Branch("isVetoed", &m_isVetoed, "isVetoed/I"); 
+  m_neuTree->Branch("Nevt", &m_Nevt, "Nevt/I"); 
+  m_neuTree->Branch("TrigType", &m_TrigType, "TrigType[Nevt]/I"); 
+  // TrigSec of the first event in the block
+  m_neuTree->Branch("fstTrigSec", &m_fstTrigSec, "fstTrigSec/I"); 
+  // TrigNanoSec of the first event in the block
+  m_neuTree->Branch("fstTrigNanoSec", &m_fstTrigNanoSec, "fstTrigNanoSec/I"); 
+
+  // time2lastADEvt, time2postADEvt
+  m_neuTree->Branch("t2preADEvt",  &m_t2preADEvt,  "t2preADEvt/D");
+  m_neuTree->Branch("preADEvtE",  &m_preADEvtE,  "preADEvtE/F");
+  m_neuTree->Branch("t2nextADEvt", &m_t2nextADEvt, "t2nextADEvt/D");
+  m_neuTree->Branch("nextADEvtE", &m_nextADEvtE, "nextADEvtE/F");
+
+  // time2muon
+  m_neuTree->Branch("t2preRPCMuon", &m_t2preRPCMuon, "t2preRPCMuon[Nevt]/F"); 
+  m_neuTree->Branch("t2preIWSMuon", &m_t2preIWSMuon, "t2preIWSMuon[Nevt]/F"); 
+  m_neuTree->Branch("t2preOWSMuon", &m_t2preOWSMuon, "t2preOWSMuon[Nevt]/F"); 
+  m_neuTree->Branch("t2nextIWSMuon", &m_t2nextIWSMuon, "t2nextIWSMuon[Nevt]/F"); 
+  m_neuTree->Branch("t2nextOWSMuon", &m_t2nextOWSMuon, "t2nextOWSMuon[Nevt]/F"); 
+  m_neuTree->Branch("t2nextRPCMuon", &m_t2nextRPCMuon, "t2nextRPCMuon[Nevt]/F"); 
+  m_neuTree->Branch("t2nonShowerMuon", &m_t2nonShowerMuon, "t2nonShowerMuon[Nevt]/F"); 
+  m_neuTree->Branch("t2showerMuon", &m_t2showerMuon, "t2showerMuon[Nevt]/F"); 
+  m_neuTree->Branch("t2nextNonShowerMuon", &m_t2nextNonShowerMuon, "t2nextNonShowerMuon[Nevt]/F"); 
+
+  m_neuTree->Branch("preNonShowerMuonE", &m_preNonShowerMuonE, "preNonShowerMuonE[Nevt]/F"); 
+  m_neuTree->Branch("preShowerMuonE", &m_preShowerMuonE, "preShowerMuonE[Nevt]/F"); 
+
+  // vertex
+  m_neuTree->Branch("X", &m_X, "X[Nevt]/F");
+  m_neuTree->Branch("Y", &m_Y, "Y[Nevt]/F");
+  m_neuTree->Branch("Z", &m_Z, "Z[Nevt]/F");
+
+  // Flasher discriminators
+  m_neuTree->Branch("MaxQ", &m_MaxQ, "MaxQ[Nevt]/F");
+  m_neuTree->Branch("Quadrant", &m_Quadrant, "Quadrant[Nevt]/F");
+  m_neuTree->Branch("middleTimeRMS", &m_middleTimeRMS, "middleTimeRMS[Nevt]/F");
+  m_neuTree->Branch("m_maxQ_2inchPMT", &m_maxQ_2inchPMT, "m_maxQ_2inchPMT[Nevt]/F");
+  m_neuTree->Branch("m_Column_2inchPMT", &m_Column_2inchPMT, "m_Column_2inchPMT[Nevt]/F");
+  //m_neuTree->Branch("maxqRing", &m_maxqRing, "maxqRing[Nevt]/I");
+  //m_neuTree->Branch("maxqCol", &m_maxqCol, "maxqCol[Nevt]/I");
+  m_neuTree->Branch("nPmt", &m_nPmt, "nPmt[Nevt]/I");
+
+  // Energy
+  m_neuTree->Branch("Energy",  &m_Energy,  "Energy[Nevt]/F"); 
+  m_neuTree->Branch("rawEvis", &m_rawEvis, "rawEvis[Nevt]/F"); 
+  m_neuTree->Branch("enrec",   &m_enrec,   "enrec[Nevt]/F"); 
+  m_neuTree->Branch("eprec",   &m_eprec,   "eprec[Nevt]/F"); 
+  m_neuTree->Branch("scaledE", &m_scaledE, "scaledE[Nevt]/F"); 
+
+  // time interval between the two nearby events in the block,
+  // deltaT[0] is 0
+  m_neuTree->Branch("deltaT", &m_deltaT, "deltaT[Nevt]/D"); 
+
+  // file number and readout number
+  m_neuTree->Branch("fileSeqNum", &m_fileSeqNum, "fileSeqNum[Nevt]/I");
+  m_neuTree->Branch("lclRoNum", &m_lclRoNum, "lclRoNum[Nevt]/I");
+ 
+  // preceding muon time and energy, for Li9/He8 study
+  if(m_savePreAdMus) {
+    m_neuTree->Branch("t2preAdMus", &m_t2preAdMus, "t2preAdMus[600]/F");
+    m_neuTree->Branch("preAdMusE", &m_preAdMusE, "preAdMusE[600]/F");
+  }
+  // =======================================================================================
+  return true;
+}
+
+bool IBDSelSimpAlg::finalize()
+{
+  return true;
+}
+
+bool IBDSelSimpAlg::execute()
+{
+  PhyEvent *event = m_buffer->curEvt();
+  if(event->m_entry%100000==0) cout << "------entry=" << event->m_entry << endl;
+
+  print(event);
+
+  double time = event->m_trigTime.GetSec(); 
+
+  // update muon veto window
+  if(event->isMuon()) {
+    LogDebug << "This is a muon. Update the veto window!" << endl;
+    if(m_drawHists) drawMuons(event);
+    m_muonVeto->updateVetoWindow(event);
+  }
+
+  if(event->isMuon() && event->m_det<=4 && m_savePreAdMus && event->energy()>m_adMuonBufThr) {
+    m_adMuonBuf[event->m_det-1].push_back(event->GrabInstance());
+    if(m_adMuonBuf[event->m_det-1].size()>NpreMus) {
+      m_adMuonBuf[event->m_det-1].front()->ReleaseInstance();
+      m_adMuonBuf[event->m_det-1].pop_front();
+    }
+    LogDebug << "m_adMuonBuf.size: " << event->m_det << ", " << m_adMuonBuf[event->m_det-1].size() << endl;
+  }
+
+  // Skip non AD event
+  if(!event->isAD()) {return true; }
+
+  if(!(event->m_det>=1&&event->m_det<=4)) {
+    LogError << "Wrong detector." << endl;
+  }
+
+  // Histograming all triggers' rate and spectrum
+  // single rates
+  LogDebug << "Start to draw histogram." << endl;
+  int bin = 0; double wt = 0.;
+  if(m_drawHists) {
+    if(event->energy() > m_eplow && event->energy() < m_ephigh) {
+      triggerRateLowAll[event->m_det-1]->Fill(time);
+    }
+    if(event->energy() > m_edlow && event->energy() < m_edhigh) {
+      triggerRateHighAll[event->m_det-1]->Fill(time);
+    }
+    triggerRateAll[event->m_det-1]->Fill(time);
+    bin = triggerSpecAllLog[event->m_det-1]->FindBin(event->energy());
+    wt = eBinWt[bin];
+    triggerSpecAllLog[event->m_det-1]->Fill(event->energy(), wt);
+    triggerSpecAll[event->m_det-1]->Fill(event->energy());
+  }
+
+  // Remove flashers
+  if(event->m_flasherTag || event->m_2inchFlasherTag)  { 
+    if(m_drawHists && !m_muonVeto->veto(event)) {
+      flasherRate[0][event->m_det-1]->Fill(time);
+      if(event->energy() > m_eplow) flasherRate[1][event->m_det-1]->Fill(time);
+      if(event->energy() > 1) flasherRate[2][event->m_det-1]->Fill(time);
+      if(event->energy() > m_edlow && event->energy() < m_edhigh) flasherRate[3][event->m_det-1]->Fill(time);
+      if(event->energy() >= m_edhigh) flasherRate[4][event->m_det-1]->Fill(time);
+    }
+    return true; 
+  }
+  
+  double ellipse = (event->m_quadrant*event->m_quadrant) +
+                   (event->m_maxQ/0.45)*(event->m_maxQ/0.45);
+  if(ellipse>1.) LogDebug << "Error! Ellipse > 1 after flasher cut! " << endl;
+
+  LogDebug << "draw triggers after removing flashers" << endl;
+  // Fill the trigger after remove flashers
+  if(m_drawHists) {
+    if(event->energy() > m_eplow && event->energy() < m_ephigh) {
+      triggerRateLowCutFlasher[event->m_det-1]->Fill(time);
+    }
+    if(event->energy() > m_edlow && event->energy() < m_edhigh) {
+      triggerRateHighCutFlasher[event->m_det-1]->Fill(time);
+    }
+    triggerRateAllCutFlasher[event->m_det-1]->Fill(time);
+    triggerSpecAllCutFlasherLog[event->m_det-1]->Fill(event->energy(), wt);
+    triggerSpecAllCutFlasher[event->m_det-1]->Fill(event->energy());
+  }
+
+  // =========================Process Events inside Veto Window=================
+  if(m_muonVeto->veto(event)) {
+
+    if(!event->isAdMuon() && !event->isShowerMuon() )
+    {
+      m_isVetoed = 1;
+      if(event->energy() > m_eplow) {
+        double tCut = 1.2e-5; // 12us
+
+        for(int i=0; i<9; i++) m_t2Mus[i] = 10.e6;
+        calcT2Mus(event);
+
+        if( m_t2Mus[0]>tCut && m_t2Mus[1]>m_preVetoWin && m_t2Mus[2]>tCut && m_t2Mus[3]>m_preVetoWin) { // only select triggers with t2Mu > 12us
+          processEvt(event, m_adVetoedBuf[event->m_det-1]);
+          m_adVetoedBuf[event->m_det-1].push_back(event->GrabInstance());
+
+          LogDebug << "Process NeuEvt inside muon veto. m_neuBuf[event->m_det-1]: " << m_neuBuf[event->m_det-1].size() << endl;
+          processNeuEvt(event, m_neuVetoedBuf[event->m_det-1]);
+          if( event->energy() > m_edlow)
+            m_neuVetoedBuf[event->m_det-1].push_back(event->GrabInstance());
+        }
+      }
+    }
+
+    return true;
+  }
+
+  if(m_drawHists) drawTriggersCutPoolMuon(event);
+  if(event->isAdMuon() || event->isShowerMuon() ) return true;
+  
+  // =========================Process Events Survival Veto=====================
+  // Remove very low E triggers
+  if(event->energy() <= m_eplow) { return true; }
+
+  // process the events in the vetoed buffer
+  m_isVetoed = 1;
+  processEvt(event, m_adVetoedBuf[event->m_det-1]);
+  processNeuEvt(event, m_neuVetoedBuf[event->m_det-1]);
+
+  // process the events in the NOT vetoed buffer
+  m_isVetoed = 0;
+  processEvt(event, m_adBuf[event->m_det-1]);
+  // GrabInstance() is used as a smart pointer, 
+  // to make sure event in local buffer will not be deleted,
+  // event if it's out of the buffer time window
+  LogDebug << "push_back: " << event->m_entry << endl;
+  LogDebug << "Empty buffer. Either this is the first event or something wrong." << endl;
+  m_adBuf[event->m_det-1].push_back(event->GrabInstance());
+
+  processNeuEvt(event, m_neuBuf[event->m_det-1]);
+  if( event->energy() > m_edlow) m_neuBuf[event->m_det-1].push_back(event->GrabInstance());
+
+  return true;
+}
+
+void IBDSelSimpAlg::processEvt(PhyEvent* event, std::vector<PhyEvent*>& evtBuf) 
+{
+  PhyEvent *lastEvt = 0;
+  if(!evtBuf.empty()) {
+    lastEvt = evtBuf[evtBuf.size()-1];
+    double t2last = event->m_trigTime - lastEvt->m_trigTime;
+    if(t2last > m_dthigh) { // find a time gap, deal with events in buffer
+      fillCoinc(evtBuf);
+      // Release the smart pointer when this event is removed from local buffer,
+      // to make sure no memory leak
+      if(m_drawHists && m_isVetoed==0) {
+        if(evtBuf.size()==1) drawSingles(evtBuf[0]);
+        //if(evtBuf.size()>1) {
+        //   for(unsigned int i=0;i<evtBuf.size();i++) drawTriggersCutShowerMuon(evtBuf[i]);
+        //}
+      }
+
+      for(unsigned int i=0;i<evtBuf.size();i++) {
+        evtBuf[i]->ReleaseInstance();
+      }
+      evtBuf.clear();
+    } 
+  } 
+}
+
+void IBDSelSimpAlg::processNeuEvt(PhyEvent* event, std::vector<PhyEvent*>& evtBuf) 
+{
+  PhyEvent *lastEvt = 0;
+  if(!evtBuf.empty()) {
+    lastEvt = evtBuf[evtBuf.size()-1];
+    double t2last = event->m_trigTime - lastEvt->m_trigTime;
+    if(t2last > m_dthigh) { // find a time gap, deal with events in buffer
+      fillNeu(evtBuf);
+      // Release the smart pointer when this event is removed from local buffer,
+      // to make sure no memory leak
+      for(unsigned int i=0;i<evtBuf.size();i++) {
+        evtBuf[i]->ReleaseInstance();
+      }
+      evtBuf.clear();
+    } 
+  } 
+}
+
+bool IBDSelSimpAlg::fillCoinc(const vector<PhyEvent*> &evtGroup) {
+  LogDebug << "Multiplicity of event group: " << evtGroup.size() << endl;
+
+  m_Nevt = evtGroup.size();
+  m_det = evtGroup[0]->m_det;
+
+  if(m_isVetoed==0) hNevt[m_det-1]->Fill(m_Nevt);
+  //===========================================================================
+
+  // If no neutron-like trigger inside the cluster, rejected
+  int hasHEevt = 0;
+  for(int i=0; i<m_Nevt; i++) {
+    if(evtGroup[i]->energy()>m_edlow)  hasHEevt = 1; 
+  }
+  if(hasHEevt==0) return true; 
+
+  // IBD selection
+  if(m_Nevt==2 && m_isVetoed==0) {
+    m_Energy[0] = evtGroup[0]->energy();
+    m_Energy[1] = evtGroup[1]->energy();
+    m_deltaT[1] = evtGroup[1]->m_trigTime - evtGroup[0]->m_trigTime;
+    // coincidence 2-d histograms
+    if(m_drawHists) coinc2d[m_det-1]->Fill(m_Energy[1], m_Energy[0]);
+
+    if(m_Energy[0]>m_eplow && m_Energy[1]>m_edlow && m_Energy[1]<m_edhigh && m_deltaT[1]>m_dtlow) {
+
+      dump(evtGroup); // fast neutrons with high prompt E included
+      m_isIbd=0;
+      if(m_Energy[0]<m_ephigh) {
+        if(m_t2preIWSMuon[1]>m_muVetoWin && m_t2nextIWSMuon[1]>m_preVetoWin) {
+          if(m_t2preOWSMuon[1]>m_muVetoWin && m_t2nextOWSMuon[1]>m_preVetoWin) {
+            if(m_t2nonShowerMuon[1]>m_adMuVetoWin && m_t2showerMuon[1]>m_showerMuVetoWin ) {
+              ibdRate[m_det-1]->Fill(m_fstTrigSec);
+              ibdPosE[m_det-1]->Fill(m_Energy[0]);
+              ibdNeuE[m_det-1]->Fill(m_Energy[1]);
+              ibdTime[m_det-1]->Fill(m_deltaT[1]*1.e6); //us
+              m_isIbd=1;
+            }
+          }
+        }
+      }
+      m_ibdTree->Fill();
+    } 
+
+    // ******************************************************************************
+    // "Inverse IBD selection"
+    if(m_Energy[1]>m_eplow && m_Energy[1]<m_ephigh && m_Energy[0]>m_edlow && m_Energy[0]<m_edhigh && m_deltaT[1]>m_dtlow) {
+
+      dump(evtGroup);
+      m_isIbd=0;
+      if(m_t2preIWSMuon[1]>m_muVetoWin && m_t2nextIWSMuon[1]>m_preVetoWin) {
+        if(m_t2preOWSMuon[1]>m_muVetoWin && m_t2nextOWSMuon[1]>m_preVetoWin) {
+          if(m_t2nonShowerMuon[1]>m_adMuVetoWin && m_t2showerMuon[1]>m_showerMuVetoWin ) {
+            m_isIbd=1;
+          }
+        }
+      }
+      m_swapIbdTree->Fill();
+    } 
+  }
+  return true;
+}
+
+bool IBDSelSimpAlg::fillNeu(const vector<PhyEvent*> &evtGroup) {
+  m_Nevt = evtGroup.size();
+
+  dump(evtGroup);
+  m_neuTree->Fill();
+  LogDebug << "Successfull fill the tree" << endl;
+
+  return true;
+}
+
+bool IBDSelSimpAlg::dump(const vector<PhyEvent*> &evtGroup) {
+
+   m_Nevt = evtGroup.size();
+
+   // pre AD event
+   PhyEvent *preEvt = preADEvt(evtGroup[0], m_det);
+   if(preEvt) {
+     m_preADEvtE = preEvt->energy();
+     m_t2preADEvt = evtGroup[0]->m_trigTime - preEvt->m_trigTime;
+   }
+   else {
+     m_preADEvtE = 0.; m_t2preADEvt = 0.;
+   }
+
+   // next AD event
+   PhyEvent *nextEvt = nextADEvt(evtGroup[m_Nevt-1], m_det);
+   if(nextEvt) {
+     m_nextADEvtE = nextEvt->energy();
+     m_t2nextADEvt = nextEvt->m_trigTime - evtGroup[m_Nevt-1]->m_trigTime;
+   }
+   else {
+     m_nextADEvtE = 0.; m_t2nextADEvt = 0.;
+   }
+
+   // assign variables to be saved into ibdTree
+   for(int evtNum=0; evtNum<m_Nevt; evtNum++) {
+     m_TrigType[evtNum] = evtGroup[evtNum]->m_trigType;
+     m_Energy[evtNum] = evtGroup[evtNum]->energy();
+     m_rawEvis[evtNum] = evtGroup[evtNum]->m_rawEvis; 
+     m_enrec[evtNum] = evtGroup[evtNum]->m_enrec;  
+     m_eprec[evtNum] = evtGroup[evtNum]->m_eprec;  
+     m_scaledE[evtNum] = evtGroup[evtNum]->m_energy; 
+
+     m_fileSeqNum[evtNum] = evtGroup[evtNum]->m_fileNum;
+     m_lclRoNum[evtNum] = evtGroup[evtNum]->m_localEntry;
+
+     m_X[evtNum] = evtGroup[evtNum]->m_x;
+     m_Y[evtNum] = evtGroup[evtNum]->m_y;
+     m_Z[evtNum] = evtGroup[evtNum]->m_z;
+     //m_maxqRing[evtNum] =  ...;
+     //m_maxqCol[evtNum] =  ...;
+     m_nPmt[evtNum] = evtGroup[evtNum]->m_nPmt;
+     m_MaxQ[evtNum] = evtGroup[evtNum]->m_maxQ;
+     m_Quadrant[evtNum] = evtGroup[evtNum]->m_quadrant;
+     m_middleTimeRMS[evtNum] = evtGroup[evtNum]->m_MiddleTimeRMS;
+	   m_maxQ_2inchPMT[evtNum] = evtGroup[evtNum]->m_maxQ_2inchPMT;
+	   m_Column_2inchPMT[evtNum] = evtGroup[evtNum]->m_Column_2inchPMT;
+
+     for(int i=0; i<9; i++) m_t2Mus[i] = 10.e6;
+     calcT2Mus(evtGroup[evtNum]);
+     m_t2preIWSMuon[evtNum] = m_t2Mus[0];
+     m_t2nextIWSMuon[evtNum] = m_t2Mus[1];
+     m_t2preOWSMuon[evtNum] = m_t2Mus[2];
+     m_t2nextOWSMuon[evtNum] = m_t2Mus[3];
+     m_t2preRPCMuon[evtNum] = m_t2Mus[4];
+     m_t2nextRPCMuon[evtNum] = m_t2Mus[5];
+     m_t2nonShowerMuon[evtNum] = m_t2Mus[6];
+     m_t2showerMuon[evtNum] = m_t2Mus[7];
+     m_t2nextNonShowerMuon[evtNum] = m_t2Mus[8];
+
+     PhyEvent *preMu = m_muonVeto->preMuon(evtGroup[evtNum], evtGroup[evtNum]->m_det);
+     if(preMu) { m_preNonShowerMuonE[evtNum] = preMu->energy(); }
+
+     preMu = m_muonVeto->preShowerMuon(evtGroup[evtNum]);
+     if(preMu) { m_preShowerMuonE[evtNum] = preMu->energy(); }
+
+     if(evtNum>0) {
+       m_deltaT[evtNum] = evtGroup[evtNum]->m_trigTime - evtGroup[evtNum-1]->m_trigTime;
+     }
+   }
+   m_deltaT[0] = 0;
+   m_fstTrigSec = evtGroup[0]->m_trigTime.GetSec();
+   m_fstTrigNanoSec = evtGroup[0]->m_trigTime.GetNanoSec();
+
+   if(m_savePreAdMus) {
+     unsigned int muNum = m_adMuonBuf[m_det-1].size();
+     LogDebug << "muNum : " << muNum << endl;
+     for(unsigned int i=0; i<NpreMus-muNum; i++) {
+       m_t2preAdMus[i] = 0.0;
+       m_preAdMusE[i] = 0.0;
+     }
+     if(muNum>0) {
+       list<PhyEvent*>::iterator it = m_adMuonBuf[m_det-1].end();
+       it--;
+       for(unsigned int i= NpreMus-muNum; i<NpreMus; i++) {
+         m_t2preAdMus[i] = evtGroup[0]->m_trigTime - (*it)->m_trigTime;
+         m_preAdMusE[i] = (*it)->energy();
+         LogDebug << "i, m_t2preAdMus, m_preAdMusE: " << i << ", " << m_t2preAdMus[i] << ", " << m_preAdMusE[i] << endl;
+         it--;
+       }
+     }
+   }
+
+   return kTRUE;
+}
+
+bool IBDSelSimpAlg::calcT2Mus(PhyEvent* event) {
+  // Time to IWS muon
+  PhyEvent *preMu = m_muonVeto->preMuon(event, 5);
+  if(preMu) {
+    m_t2Mus[0] = event->m_trigTime - preMu->m_trigTime;
+  }
+  PhyEvent *nextMu = m_muonVeto->nextMuon(event, 5);
+  if(nextMu) {
+    m_t2Mus[1] = nextMu->m_trigTime - event->m_trigTime;
+  }
+  // Time to OWS muon
+  preMu = m_muonVeto->preMuon(event, 6);
+  if(preMu) {
+    m_t2Mus[2] = event->m_trigTime - preMu->m_trigTime;
+  }
+  nextMu = m_muonVeto->nextMuon(event, 6);
+  if(nextMu) {
+    m_t2Mus[3] = nextMu->m_trigTime - event->m_trigTime;
+  }
+  // Time to RPC muon
+//  preMu = m_muonVeto->preMuon(event, 7);
+//  if(preMu) {
+//    m_t2Mus[4] = event->m_trigTime - preMu->m_trigTime;
+//  }
+//  nextMu = m_muonVeto->nextMuon(event, 7);
+//  if(nextMu) {
+//    m_t2Mus[5] = nextMu->m_trigTime - event->m_trigTime;
+//  }
+  // Time to AD Muons
+  preMu = m_muonVeto->preMuon(event, event->m_det);
+  if(preMu) {
+    m_t2Mus[6] = event->m_trigTime - preMu->m_trigTime;
+  }
+
+  preMu = m_muonVeto->preShowerMuon(event);
+  if(preMu) {
+    m_t2Mus[7] = event->m_trigTime - preMu->m_trigTime;
+  }
+
+  nextMu = m_muonVeto->nextMuon(event, event->m_det);
+  if(nextMu) {
+    m_t2Mus[8] = nextMu->m_trigTime - event->m_trigTime;
+  }
+
+  return true;
+}
+
+PhyEvent* IBDSelSimpAlg::preADEvt(PhyEvent *event, const int det)
+{
+  DataBuffer<PhyEvent>::Iterator it=m_buffer->find(event);
+  if(it==m_buffer->end()) {
+    LogWarn << "calling preADEvt: Current event is the end of main buffer!" << endl;
+    return 0;
+  }
+  if(it==m_buffer->begin()) {
+    LogWarn << "calling preADEvt: Current event is the begin of main buffer!" << endl;
+    return 0;
+  }
+//  LogDebug << "Current entry: " << (*it)->m_entry << endl;
+  it--;
+  while ( it >= m_buffer->begin() ) {
+    PhyEvent* event = (*it);
+    if(event->isAD() && event->energy()>m_eplow && !event->isMuon() && !event->m_flasherTag && !event->m_2inchFlasherTag) {
+      if(event->m_det==det || det==0) {
+//        LogDebug << "Last AD entry: " << event->m_entry << endl;
+        return event;
+      }
+    }
+    it--;
+  }
+  return 0;
+}
+
+PhyEvent* IBDSelSimpAlg::nextADEvt(PhyEvent *event, const int det)
+{
+  DataBuffer<PhyEvent>::Iterator it=m_buffer->find(event);
+  if(it==m_buffer->end()) {
+    LogWarn << "calling nextADEvt: Current event is the end of main buffer!" << endl;
+    return 0;
+  }
+  if(it==m_buffer->begin()) {
+    LogWarn << "calling nextADEvt: Current event is the begin of main buffer!" << endl;
+    return 0;
+  }
+//  LogDebug << "Current entry: " << (*it)->m_entry << endl;
+  it++;
+  while ( it < m_buffer->end() ) {
+    PhyEvent* event = (*it);
+    if(event->isAD() && event->energy()>m_eplow && !event->isMuon() && !event->m_flasherTag && !event->m_2inchFlasherTag) {
+      if(event->m_det==det || det==0) {
+//        LogDebug << "Last AD entry: " << event->m_entry << endl;
+        return event;
+      }
+    }
+    it++;
+  }
+  return 0;
+}
+
+const TTimeStamp IBDSelSimpAlg::timeCnv(double time)
+{
+  int sec = (int)time;
+  int nanosec = (int)((time-sec)*1.e9);
+  return TTimeStamp(sec,nanosec);
+}
+
+void IBDSelSimpAlg::drawMuons(PhyEvent* event) 
+{
+  double time = event->m_trigTime.GetSec();
+    if(event->m_det==5) {
+      IWSMuonRate->Fill(time);
+    }
+    if(event->m_det==6) {
+      OWSMuonRate->Fill(time);
+    }
+    if(event->m_det==7) {
+      rpcMuonRate->Fill(time);
+    }
+    if(event->m_det<=4) {
+      adMuonRate[event->m_det-1]->Fill(time);
+      int bin = muonSpec[event->m_det-1]->FindBin(event->energy());
+      muonSpec[event->m_det-1]->Fill(event->energy(), eBinWt[bin]);
+      if(event->isShowerMuon()) {
+        showerMuonRate[event->m_det-1]->Fill(time);
+      }
+    }
+}
+
+void IBDSelSimpAlg::drawTriggersCutPoolMuon(PhyEvent* event)
+{
+  double time = event->m_trigTime.GetSec();
+  // single rates after IWS/OWS muon veto
+  if(event->energy() > m_eplow && event->energy() < m_ephigh) {
+    triggerRateLowAfterPoolMuonVeto[event->m_det-1]->Fill(time);
+  }
+  if(event->energy() > m_edlow && event->energy() < m_edhigh) {
+    triggerRateHighAfterPoolMuonVeto[event->m_det-1]->Fill(time);
+  }
+  triggerRateAllAfterPoolMuonVeto[event->m_det-1]->Fill(time);
+  int bin = triggerSpecAllAfterPoolMuonVetoLog[event->m_det-1]->FindBin(event->energy());
+  double wt = eBinWt[bin];
+  triggerSpecAllAfterPoolMuonVetoLog[event->m_det-1]->Fill(event->energy(), wt);
+  triggerSpecAllAfterPoolMuonVeto[event->m_det-1]->Fill(event->energy());
+  if(event->energy()>1.0)  triggerRate[1][event->m_det-1]->Fill(time);
+  if(event->energy()>1.5)  triggerRate[2][event->m_det-1]->Fill(time);
+  if(event->energy()>2.0)  triggerRate[3][event->m_det-1]->Fill(time);
+  if(event->energy()>2.5)  triggerRate[4][event->m_det-1]->Fill(time);
+  if(event->energy()>3.0)  triggerRate[5][event->m_det-1]->Fill(time);
+  if(event->energy()>3.5)  triggerRate[6][event->m_det-1]->Fill(time);
+}
+
+void IBDSelSimpAlg::drawTriggersCutShowerMuon(PhyEvent* event)
+{
+  if(m_isVetoed==0) {
+     for(int i=0; i<9; i++) m_t2Mus[i] = 10.e6;
+     calcT2Mus(event);
+
+     if(m_t2Mus[0]>m_muVetoWin && m_t2Mus[1]>m_preVetoWin && m_t2Mus[2]>m_muVetoWin && m_t2Mus[3]>m_preVetoWin && m_t2Mus[6]>m_adMuVetoWin && m_t2Mus[7]>m_showerMuVetoWin ) {
+
+        double time = event->m_trigTime.GetSec();
+        // single rates after shower muon veto
+        if(event->energy() > m_eplow && event->energy() < m_ephigh) {
+          triggerRateLowAfterShowerMuonVeto[event->m_det-1]->Fill(time);
+        }
+        if(event->energy() > m_edlow && event->energy() < m_edhigh) {
+          triggerRateHighAfterShowerMuonVeto[event->m_det-1]->Fill(time);
+        }
+        triggerRateAllAfterShowerMuonVeto[event->m_det-1]->Fill(time);
+        int bin = triggerSpecAllAfterShowerMuonVetoLog[event->m_det-1]->FindBin(event->energy());
+        double wt = eBinWt[bin];
+        triggerSpecAllAfterShowerMuonVetoLog[event->m_det-1]->Fill(event->energy(), wt);
+        triggerSpecAllAfterShowerMuonVeto[event->m_det-1]->Fill(event->energy());
+     }
+  }
+}
+
+void IBDSelSimpAlg::print(PhyEvent* event) {
+  LogDebug << "------entry=" << event->m_entry
+    << ", " << event
+    << ", fileNum=" << event->m_fileNum
+    << ", local entry=" << event->m_localEntry
+    << ", trigtime=" << event->m_trigTime
+    << ", trigType=" << event->m_trigType
+    << ", det=" << event->m_det 
+    << ", energy=" << event->m_energy
+    << ", rawEvis=" << event->m_rawEvis
+    << ", energy()=" << event->energy()
+    << ", nPmt=" << event->m_nPmt
+    << ", flasherTag=" << event->m_flasherTag 
+    << ", forceTrigTag=" << event->m_forceTrigTag
+    << ", crossTrigTag=" << event->m_crossTrigTag
+    << ", rpcNoiseTag=" << event->m_rpcNoiseTag
+    << ", adLowEnergyTag=" << event->m_adLowEnergyTag
+    << ", goodevent=" << event->m_good
+    << ", muontag=" << event->m_muonTag
+    << endl;
+}
+
+bool IBDSelSimpAlg::drawSingles(PhyEvent* event)
+{
+  if(m_isVetoed==0) {
+    float sE = event->energy();
+    int sDet = event->m_det;
+    double time = event->m_trigTime.GetSec();
+
+    // low E singles
+    if(sE<m_ephigh && sE>m_eplow) {
+      lowESinglesSpecAfterPoolMuonVeto[sDet-1]->Fill(sE);
+      lowESinglesRateAfterPoolMuonVeto[sDet-1]->Fill(time);
+      //if(m_t2Mus[0]>m_muVetoWin && m_t2Mus[1]>m_preVetoWin && m_t2Mus[2]>m_muVetoWin && m_t2Mus[3]>m_preVetoWin && m_t2Mus[6]>m_adMuVetoWin && m_t2Mus[7]>m_showerMuVetoWin ) {
+      //   lowESinglesSpecAfterShowerMuonVeto[sDet-1]->Fill(sE);
+      //   lowESinglesRateAfterShowerMuonVeto[sDet-1]->Fill(time);
+      //}
+    }
+
+    // neu E singles
+    if(sE>m_edlow) {
+     for(int i=0; i<9; i++) m_t2Mus[i] = 10.e6;
+     calcT2Mus(event);
+
+      if(sE>=m_edhigh) {
+        highESinglesSpecAfterPoolMuonVeto[sDet-1]->Fill(sE);
+        highESinglesRateAfterPoolMuonVeto[sDet-1]->Fill(time);
+      }
+      if(sE<m_edhigh && sE>m_edlow) {
+        neuSinglesSpecAfterPoolMuonVeto[sDet-1]->Fill(sE);
+        neuSinglesRateAfterPoolMuonVeto[sDet-1]->Fill(time);
+      }
+      if(m_t2Mus[0]>m_muVetoWin && m_t2Mus[1]>m_preVetoWin && m_t2Mus[2]>m_muVetoWin && m_t2Mus[3]>m_preVetoWin && m_t2Mus[6]>m_adMuVetoWin && m_t2Mus[7]>m_showerMuVetoWin ) {
+        if(sE>=m_edhigh) {
+          highESinglesSpecAfterShowerMuonVeto[sDet-1]->Fill(sE);
+          highESinglesRateAfterShowerMuonVeto[sDet-1]->Fill(time);
+        }
+        if(sE<m_edhigh && sE>m_edlow) {
+          neuSinglesSpecAfterShowerMuonVeto[sDet-1]->Fill(sE);
+          neuSinglesRateAfterShowerMuonVeto[sDet-1]->Fill(time);
+        }
+      }
+    }
+  }
+}
