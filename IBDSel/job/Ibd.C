@@ -433,7 +433,7 @@ void Ibd::Terminate()
 	
 	//usr rpc veto
 	//pol1
-	TF1* f1= new TF1("f1","pol1",12.,60.);
+	TF1* f1= new TF1("f1","pol1",12.,100.);
 	tFnProEWithrpc->Fit(f1,"R");
 	double par1[2],ipar1[2];
 	f1->GetParameters(&par1[0]);
@@ -457,7 +457,7 @@ void Ibd::Terminate()
 
 	//NFn1=f1->Integral(0.7,12.0);
 	//pol0
-	TF1* f0= new TF1("f0","pol0",12.,60.);
+	TF1* f0= new TF1("f0","pol0",12.,100.);
 	tFnProEWithrpc->Fit(f0,"R+");
 	double par0,ipar0;
 	f0->GetParameters(&par0);
@@ -478,7 +478,7 @@ void Ibd::Terminate()
 	//NFn0=f0->Integral(0.7,12.0);
 	//without using rpc veto
 	//pol1
-	TF1* f10= new TF1("f10","pol1",12.,60.);
+	TF1* f10= new TF1("f10","pol1",12.,100.);
 	TFitResultPtr r=tFnProEWithoutrpc->Fit(f10,"RS");
     double chi2=r->Chi2();
     double ndf=r->Ndf();
@@ -498,7 +498,7 @@ void Ibd::Terminate()
     iNFnsquare10=(ipar10[0]*2+12.7*ipar10[1])*(12-0.7)/2;
 
 	//pol0
-	TF1* f00= new TF1("f00","pol0",12.,60.);
+	TF1* f00= new TF1("f00","pol0",12.,100.);
 	TFitResultPtr r0=tFnProEWithoutrpc->Fit(f00,"R+S");
     double chi20=r0->Chi2();
     double ndf0=r0->Ndf();
