@@ -392,87 +392,7 @@ void Ibd::Terminate()
 {
 	for( int i=0 ; i<ADNum ; i++ )
 	{
-		/*
-		//usr rpc veto
-		//pol1
-		TF1* f1= new TF1("f1","pol1",12.,100.);
-		//FnProEWithrpc[i]->Fit(f1,"R");
-		tFnProEWithrpc->Fit(f1,"R");
-		double par1[2],ipar1[2];
-		f1->GetParameters(&par1[0]);
-		ipar1[0]=f1->GetParError(0);
-		ipar1[1]=f1->GetParError(1);
-		int binlow=FnProEWithrpc[i]->FindBin(0.7);
-		int binup=FnProEWithrpc[i]->FindBin(12.);
-		std::cout<<"binlow  : "<<binlow<<endl;
-		std::cout<<"binup  : "<<binup<<endl;
-		double bincenter=0.;
-		double NFn1=0.;
-		double iNFnsquare1=0.;
-		for( int j=binlow ; j<=binup ; j++ )
-		{
-			//bincenter=FnProEWithrpc[i]->GetBinCenter(j);
-			bincenter=tFnProEWithrpc->GetBinCenter(j);
-			NFn1+=(par1[0]+par1[1]*bincenter)/BinWt[j];
-			iNFnsquare1+=(bincenter*bincenter*ipar1[1]*ipar1[1]+ipar1[0]*ipar1[0])/(BinWt[j]*BinWt[j]);
-		}
-		//NFn1=f1->Integral(0.7,12.0);
-		//pol0
-		TF1* f0= new TF1("f0","pol0",12.,100.);
-		//FnProEWithrpc[i]->Fit(f0,"R+");
-		tFnProEWithrpc->Fit(f0,"R+");
-		double par0,ipar0;
-		f0->GetParameters(&par0);
-		ipar0=f0->GetParError(0);
-		double NFn0=0.;
-		double iNFnsquare0=0.;
-		
-		for( int j=binlow ; j<=binup ; j++ )
-		{
-			//bincenter=FnProEWithrpc[i]->GetBinCenter(j);
-			bincenter=tFnProEWithrpc->GetBinCenter(j);
-			NFn0+=par0/BinWt[j];
-			iNFnsquare0+=ipar0*ipar0/(BinWt[j]*BinWt[j]);
-		}
-		//NFn0=f0->Integral(0.7,12.0);
-		//without using rpc veto
-		//pol1
-		TF1* f10= new TF1("f10","pol1",12.,100.);
-		//FnProEWithoutrpc[i]->Fit(f10,"R");
-		tFnProEWithoutrpc->Fit(f10,"R");
-		double par10[2],ipar10[2];
-		f10->GetParameters(&par10[0]);
-		ipar10[0]=f10->GetParError(0);
-		ipar10[1]=f10->GetParError(1);
-		double NFn10=0.;
-		double iNFnsquare10=0.;
-		for( int j=binlow ; j<=binup ; j++ )
-		{
-			//bincenter=FnProEWithoutrpc[i]->GetBinCenter(j);
-			bincenter=tFnProEWithoutrpc->GetBinCenter(j);
-			NFn10+=(par10[0]+par10[1]*bincenter)/BinWt[j];
-			iNFnsquare10+=(bincenter*bincenter*ipar10[1]*ipar10[1]+ipar10[0]*ipar10[0])/(BinWt[j]*BinWt[j]);
-		}
-		//NFn10=f10->Integral(0.7,12.0);
-		//pol0
-		TF1* f00= new TF1("f00","pol0",12.,100.);
-		//FnProEWithoutrpc[i]->Fit(f00,"R+");
-		tFnProEWithoutrpc->Fit(f00,"R+");
-		double par00,ipar00;
-		f00->GetParameters(&par00);
-		ipar00=f00->GetParError(0);
-		double NFn00=0.;
-		double iNFnsquare00=0.;
-		for( int j=binlow ; j<=binup ; j++ )
-		{
-			//bincenter=FnProEWithoutrpc[i]->GetBinCenter(j);
-			bincenter=tFnProEWithoutrpc->GetBinCenter(j);
-			NFn00+=par00/BinWt[j];
-			iNFnsquare00+=ipar00*ipar00/(BinWt[j]*BinWt[j]);
-		}
-		//NFn00=f00->Integral(0.7,12.0);
-		*/
-            std::cout<<"start to write "<<endl;
+        std::cout<<"start to write "<<endl;
 		t2lastmuonWithrpc[i]->Write();
 		t2lastmuonWithoutrpc[i]->Write();
 		FnProEWithrpc[i]->Write();
@@ -498,20 +418,6 @@ void Ibd::Terminate()
 		std::cout<<"AD"<<i+1<<" Num of IBD (without using rpc veto) : ["<<Numo[i]+Num1[i]<<"]  "<<(Numo[i]+Num1[i])/livetime0[site][i] <<" /day"<<endl;
 		std::cout<<"    Numo: "<<Numo[i]<<" Num1: "<<Num1[i]<<endl;
 		std::cout<<" "<<endl;
-		/*
-		std::cout<<"number of Fn  : "<<endl;
-		std::cout<<"	total  : "<<(NFn0+NFn1)/2<<" +- "<<sqrt(iNFnsquare0+iNFnsquare1)/2 \
-				 <<"("<< ((NFn0+NFn1)/2 -(NFn00+NFn10)/2 )/((NFn00+NFn10)/2)<<")   B/S : "\
-				 <<((NFn0+NFn1)/(Num2[i]+Num1[i]))/2 \
-				 <<"("<<(((NFn0+NFn1)/(Num2[i]+Num1[i]))/2 -(NFn00+NFn10)/2/(Numo[i]+Num1[i]) )/((NFn00+NFn10)/2/(Numo[i]+Num1[i])) <<") rate : "\
-				 <<(NFn0+NFn1)/2/livetime[site][i]<<" +- "<< sqrt(iNFnsquare0+iNFnsquare1)/2/livetime[site][i]<<" /day ("\
-				 <<( (NFn0+NFn1)/2/livetime[site][i]-(NFn00+NFn10)/2/livetime0[site][i] )/((NFn00+NFn10)/2/livetime0[site][i]) <<")" <<endl;
-
-		std::cout<<"number of Fn (without using rpc veto) : "<<endl;
-		std::cout<<"	total0  : "<<(NFn00+NFn10)/2<<" +- "<<sqrt(iNFnsquare00+iNFnsquare10)/2 \
-			     <<"   B/S : "<<(NFn00+NFn10)/2/(Numo[i]+Num1[i]) \
-				 <<" rate : "<<(NFn00+NFn10)/2/livetime0[site][i]<<" +- "<< sqrt(iNFnsquare00+iNFnsquare10)/2/livetime[site][i]<<" /day"<<endl;
-		*/
 	}
 
 	//fn
