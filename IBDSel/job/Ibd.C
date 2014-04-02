@@ -8,6 +8,7 @@
 #include  <fstream>
 #include  <sstream>
 #include "iomanip.h"
+#include  <TFitResult.h>
 
 void Ibd::Begin(TTree * /*tree*/)
 {
@@ -432,7 +433,7 @@ void Ibd::Terminate()
 	
 	//usr rpc veto
 	//pol1
-	TF1* f1= new TF1("f1","pol1",12.,100.);
+	TF1* f1= new TF1("f1","pol1",12.,60.);
 	tFnProEWithrpc->Fit(f1,"R");
 	double par1[2],ipar1[2];
 	f1->GetParameters(&par1[0]);
@@ -456,7 +457,7 @@ void Ibd::Terminate()
 
 	//NFn1=f1->Integral(0.7,12.0);
 	//pol0
-	TF1* f0= new TF1("f0","pol0",12.,100.);
+	TF1* f0= new TF1("f0","pol0",12.,60.);
 	tFnProEWithrpc->Fit(f0,"R+");
 	double par0,ipar0;
 	f0->GetParameters(&par0);
@@ -477,8 +478,10 @@ void Ibd::Terminate()
 	//NFn0=f0->Integral(0.7,12.0);
 	//without using rpc veto
 	//pol1
-	TF1* f10= new TF1("f10","pol1",12.,100.);
-	tFnProEWithoutrpc->Fit(f10,"R");
+	TF1* f10= new TF1("f10","pol1",12.,60.);
+	TFitResultPtr r=tFnProEWithoutrpc->Fit(f10,"RS");
+    double chi2=r->Chi2();
+    double ndf=r->Ndf();
 	double par10[2],ipar10[2];
 	f10->GetParameters(&par10[0]);
 	ipar10[0]=f10->GetParError(0);
@@ -495,8 +498,10 @@ void Ibd::Terminate()
     iNFnsquare10=(ipar10[0]*2+12.7*ipar10[1])*(12-0.7)/2;
 
 	//pol0
-	TF1* f00= new TF1("f00","pol0",12.,100.);
-	tFnProEWithoutrpc->Fit(f00,"R+");
+	TF1* f00= new TF1("f00","pol0",12.,60.);
+	TFitResultPtr r0=tFnProEWithoutrpc->Fit(f00,"R+S");
+    double chi20=r0->Chi2();
+    double ndf0=r0->Ndf();
 	double par00,ipar00;
 	f00->GetParameters(&par00);
 	ipar00=f00->GetParError(0);
@@ -533,8 +538,8 @@ void Ibd::Terminate()
 		 <<( (NFn0+NFn1)/2/totallivetime-(NFn00+NFn10)/2/totallivetime0 )/((NFn00+NFn10)/2/totallivetime0) <<")" <<endl;
 
 	std::cout<<"number of Fn (without using rpc veto) : "<<endl;
-    std::cout<<"first order a+b*x  : a = "<<par10[0]<<"+-"<<ipar10[0]<<" b = "<<par10[1]<<"+-"<<ipar10[0]<<endl;
-    std::cout<<"zero  order a      : a = "<<par00<<"+-"<<ipar00<<endl;
+    std::cout<<"first order a+b*x  : a = "<<par10[0]<<"+-"<<ipar10[0]<<" b = "<<par10[1]<<"+-"<<ipar10[1]<<" chi2/ndf="<<chi2<<"/"<<ndf<<endl;
+    std::cout<<"zero  order a      : a = "<<par00<<"+-"<<ipar00<<" chi2/ndf="<<chi20<<"/"<<ndf0<<endl;
     std::cout<<"zero  order a zfj  : a = "<<tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width")/(100-12)<<"+-"<<sqrt(tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width"))/(100-12) <<endl;
 
 	std::cout<<"NFn00  : "<<NFn00<<endl;
