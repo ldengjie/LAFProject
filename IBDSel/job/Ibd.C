@@ -446,14 +446,14 @@ void Ibd::Terminate()
     double bincenter=0.;
 	double NFn1=0.;
 	double iNFnsquare1=0.;
-    for( int j=binlow ; j<=binup ; j++ )
-    {
-        bincenter=tFnProEWithrpc->GetBinCenter(j);
-        NFn1+=(par1[0]+par1[1]*bincenter)/BinWt[j];
-        iNFnsquare1+=(bincenter*bincenter*ipar1[1]*ipar1[1]+ipar1[0]*ipar1[0])/(BinWt[j]*BinWt[j]);
-    }
-    //NFn1=(par1[0]*2+12.7*par1[1])*(12-0.7)/2;
-    //iNFnsquare1=(ipar1[0]*2+12.7*ipar1[1])*(12-0.7)/2; //this is not appropriate ,from zhangfh.
+    //for( int j=binlow ; j<=binup ; j++ )
+    //{
+    //bincenter=tFnProEWithrpc->GetBinCenter(j);
+    //NFn1+=(par1[0]+par1[1]*bincenter)/BinWt[j];
+    //iNFnsquare1+=(bincenter*bincenter*ipar1[1]*ipar1[1]+ipar1[0]*ipar1[0])/(BinWt[j]*BinWt[j]);
+    //}
+    NFn1=(par1[0]*2+12.7*par1[1])*(12-0.7)/2;
+    iNFnsquare1=(ipar1[0]*2+12.7*ipar1[1])*(12-0.7)/2; //this is not appropriate ,from zhangfh.
 
 	//NFn1=f1->Integral(0.7,12.0);
 	//pol0
@@ -465,14 +465,14 @@ void Ibd::Terminate()
 	double NFn0=0.;
 	double iNFnsquare0=0.;
 	
-	for( int j=binlow ; j<=binup ; j++ )
-	{
-		bincenter=tFnProEWithrpc->GetBinCenter(j);
-		NFn0+=par0/BinWt[j];
-		iNFnsquare0+=ipar0*ipar0/(BinWt[j]*BinWt[j]);
-	}
-    //NFn0=tFnProEWithrpc->Integral(tFnProEWithrpc->FindBin(12),tFnProEWithrpc->FindBin(100),"width")*(12-0.7)/(100-12);
-    //iNFnsquare0=sqrt(tFnProEWithrpc->Integral(tFnProEWithrpc->FindBin(12),tFnProEWithrpc->FindBin(100),"width"))*(12-0.7)/(100-12);
+    //for( int j=binlow ; j<=binup ; j++ )
+    //{
+    //bincenter=tFnProEWithrpc->GetBinCenter(j);
+    //NFn0+=par0/BinWt[j];
+    //iNFnsquare0+=ipar0*ipar0/(BinWt[j]*BinWt[j]);
+    //}
+    NFn0=tFnProEWithrpc->Integral(tFnProEWithrpc->FindBin(12),tFnProEWithrpc->FindBin(100),"width")*(12-0.7)/(100-12);
+    iNFnsquare0=sqrt(tFnProEWithrpc->Integral(tFnProEWithrpc->FindBin(12),tFnProEWithrpc->FindBin(100),"width"))*(12-0.7)/(100-12);
 	//NFn00=f00->Integral(0.7,12.0);
 
 	//NFn0=f0->Integral(0.7,12.0);
@@ -488,14 +488,14 @@ void Ibd::Terminate()
 	ipar10[1]=f10->GetParError(1);
 	double NFn10=0.;
 	double iNFnsquare10=0.;
-    for( int j=binlow ; j<=binup ; j++ )
-    {
-        bincenter=tFnProEWithoutrpc->GetBinCenter(j);
-        NFn10+=(par10[0]+par10[1]*bincenter)/BinWt[j];
-        iNFnsquare10+=(bincenter*bincenter*ipar10[1]*ipar10[1]+ipar10[0]*ipar10[0])/(BinWt[j]*BinWt[j]);
-    }
-    //NFn10=(par10[0]*2+12.7*par10[1])*(12-0.7)/2;
-    //iNFnsquare10=(ipar10[0]*2+12.7*ipar10[1])*(12-0.7)/2;
+    //for( int j=binlow ; j<=binup ; j++ )
+    //{
+        //bincenter=tFnProEWithoutrpc->GetBinCenter(j);
+        //NFn10+=(par10[0]+par10[1]*bincenter)/BinWt[j];
+        //iNFnsquare10+=(bincenter*bincenter*ipar10[1]*ipar10[1]+ipar10[0]*ipar10[0])/(BinWt[j]*BinWt[j]);
+        //}
+    NFn10=(par10[0]*2+12.7*par10[1])*(12-0.7)/2;
+    iNFnsquare10=(ipar10[0]*2+12.7*ipar10[1])*(12-0.7)/2;
 
 	//pol0
 	TF1* f00= new TF1("f00","pol0",12.,60.);
@@ -507,14 +507,14 @@ void Ibd::Terminate()
 	ipar00=f00->GetParError(0);
 	double NFn00=0.;
 	double iNFnsquare00=0.;
-	for( int j=binlow ; j<=binup ; j++ )
-	{
-		bincenter=tFnProEWithoutrpc->GetBinCenter(j);
-		NFn00+=par00/BinWt[j];
-		iNFnsquare00+=ipar00*ipar00/(BinWt[j]*BinWt[j]);
-	}
-    //NFn00=tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width")*(12-0.7)/(100-12);
-    //iNFnsquare00=sqrt(tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width"))*(12-0.7)/(100-12);
+    //for( int j=binlow ; j<=binup ; j++ )
+    //{
+    //bincenter=tFnProEWithoutrpc->GetBinCenter(j);
+    //NFn00+=par00/BinWt[j];
+    //iNFnsquare00+=ipar00*ipar00/(BinWt[j]*BinWt[j]);
+    //}
+    NFn00=tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width")*(12-0.7)/(100-12);
+    iNFnsquare00=sqrt(tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width"))*(12-0.7)/(100-12);
 	//NFn00=f00->Integral(0.7,12.0);
 	std::cout<<"tNumo tNum1 tNum2  : "<<tNumo<<" " <<tNum1<<" "<<tNum2 <<endl;
 	std::cout<<"number of Fn  : "<<endl;
