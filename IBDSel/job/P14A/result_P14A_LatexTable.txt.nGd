@@ -1,0 +1,56 @@
+
+IBD for 8ADs 
+ 
+    \begin{tabular}{c|p{22pt}|p{22pt}|p{22pt}|p{22pt}|p{22pt}|p{22pt}|p{22pt}|p{22pt}} 
+     \toprule 
+     \textcolor{red}{P14A} & AD1 & AD2 & AD3 &AD8& AD4 & AD5 & AD6&AD7 \\ 
+     \hline 
+      IBD candidates &306144&311088&289095&191985&41229&41443&40999&27678\\ 
+     \hline 
+      DAQ live time(day) & 
+      \multicolumn{2}{c|}{570.258} & \multicolumn{2}{c|}{572.875} & \multicolumn{4}{c}{567.281} \\ 
+     \hline 
+      $\varepsilon_{\mu}$ &0.8249&0.8218&0.8575&0.8577&0.9811&0.9811&0.9808&0.9811\\ 
+     \bottomrule 
+    \end{tabular} 
+
+fast neutron for 8ADs
+
+    \begin{tabular}{ c|c|c|c|c|c|c|c|c} 
+      \toprule 
+      \textcolor{red}{P14A} & AD1 & AD2 & AD3 & AD8 & AD4 & AD5 & AD6 & AD7  \\ 
+      \hline 
+      total number & 
+       \multicolumn{2}{c|}{746.34$\pm$273.31} & 
+       \multicolumn{2}{c|}{494.13$\pm$259.42} & 
+       \multicolumn{4}{c}{103.19$\pm$26.66 } \\ 
+      \hline 
+      B/S & 
+       \multicolumn{2}{c|}{0.00121} & 
+       \multicolumn{2}{c|}{ 0.00103}& 
+       \multicolumn{4}{c}{0.00068} \\ 
+      \hline 
+      Rate(/day) & 
+       \multicolumn{2}{c|}{0.82$\pm$0.30} & 
+       \multicolumn{2}{c|}{0.62$\pm$0.33}& 
+       \multicolumn{4}{c}{0.05$\pm$0.05} \\ 
+      \bottomrule 
+    \end{tabular} 
+
+He8/Li9 for 8ADs
+
+    \begin{tabular}{ c|c|c|c|c|c|c|c|c} 
+      \toprule 
+      \textcolor{red}{P14A} & AD1 & AD2 & AD3 & AD8 & AD4 & AD5 & AD6 & AD7  \\ 
+      \hline 
+      total number & 
+       \multicolumn{2}{c|}{2663.69$\pm$287.60} & 
+       \multicolumn{2}{c|}{1423.41$\pm$210.99} & 
+       \multicolumn{4}{c}{557.82$\pm$42.53 } \\ 
+      \hline 
+      Rate(/day) & 
+       \multicolumn{2}{c|}{2.84$\pm$1.45} & 
+       \multicolumn{2}{c|}{1.74$\pm$0.91}& 
+       \multicolumn{4}{c}{0.27$\pm$0.14} \\ 
+      \bottomrule 
+    \end{tabular} 

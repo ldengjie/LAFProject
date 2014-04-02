@@ -33,8 +33,8 @@ int anaHists(int siteNum,string dataVer)
     //===>initialize variable
     bool anamuon=0;//
     bool anasingle=0;//accidentals bg
-    bool anaLiHe=1;//He8/Li9 bg
-    bool anaEffMulti=0;//efficiency of multiple cut
+    bool anaLiHe=0;//He8/Li9 bg
+    bool anaEffMulti=1;//efficiency of multiple cut
     bool genBinNumofRun=0;
     int ADNumOfSite[3]={0};
     int daqHistNum=5;
@@ -1558,7 +1558,7 @@ int anaAll(string dataVer,int siteNum=0)
 
         std::cout<<"====> begin to analyse EH"<<siteNum<<"'s DaqTime, epsilon_mu,epsilon_multi,accidentals,He8/Li9 "<<endl;
         std::cout<<"dataVersion  : "<<dataVer<<endl;
-        //anaHists(siteNum,dataVer);
+        anaHists(siteNum,dataVer);
         std::cout<<" "<<endl;
         std::cout<<" "<<endl;
         std::cout<<" "<<endl;
