@@ -166,8 +166,6 @@ class IBDSel : public AlgBase
 	double promptELow;//PromptEnergyLow
 	double promptEHigh;//PromptEnergyHigh
 	double promptEHigh4Fn;//PromptEnergyHigh4Fn
-	double delayedEnergyLow4Li;//PromptEnergyLow
-	double delayedEnergyHigh4Li;//PromptEnergyHigh
 	double delayedELow;//DelayedEnergyLow
 	double delayedEHigh;//DelayedEnergyHigh
 	double AdMuonELow;//AdMuonELow
@@ -175,7 +173,6 @@ class IBDSel : public AlgBase
 
 	double IbdTimeIntervalMin;//IbdTimeIntervalMin
 	double IbdTimeIntervalMax;//IbdTimeIntervalMax
-	double IbdDisInterval;//IbdTimeIntervalMax
 	double Time2LastBufEvent;//Time2LastBufEvent
 	//double Time2PreAdEvent;//Time2PreAdEvent
 	//double Time2NextAdEvent;//Time2NextAdEvent
@@ -186,5 +183,4 @@ class IBDSel : public AlgBase
 	double DelayedTrigTime2OWpMuon;//DelayedTrigTime2OWpMuon
 	double DelayedTrigTime2RpcMuon;//DelayedTrigTime2RpcMuon
 	double DelayedTrigTime2AdShowerMuon;//DelayedTrigTime2AdShowerMuon
-	double PromptTrigTime2AdShowerMuon;//PromptTrigTime2AdShowerMuon
 };
