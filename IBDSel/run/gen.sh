@@ -42,9 +42,9 @@ NuWaConfigScript="/afs/ihep.ac.cn/users/l/lidj/.laf_opt"
 
 inputFILELISTPATH="/dybfs/rec/P14A/minirec_GoodRun_v2"
 #RpcGoodFileList="/workfs/dyw/lidj/runlist/P12B/RpcGood"
-outPUTFILEPATH="/afs/ihep.ac.cn/users/l/lidj/largedata/IBD/P14A.nH"
-logPath="/afs/ihep.ac.cn/users/l/lidj/largedata/IBD/P14A.nH/log"
-targetdir=$PWD/jobs/P14A.nH
+outPUTFILEPATH="/afs/ihep.ac.cn/users/l/lidj/largedata/IBD/P14A.nGd"
+logPath="/afs/ihep.ac.cn/users/l/lidj/largedata/IBD/P14A.nGd/log"
+targetdir=$PWD/jobs/P14A.nGd
 
 outputFile2Name="runRUNNUM_IBD.root"
 useFILE1="TOutputSvc.Output" #if not use FILE1 ,just comment out this line
@@ -100,6 +100,12 @@ do
 				rm -rf "$targetdir/$site/submit.sh"
 			else
 				echo "submit.sh not exists,create a new one"
+			fi
+			if [ -f "$targetdir/$site/submit.sh.shortq" ];then
+				echo "submit.sh.shortq already exists,delete it,create a new one"
+				rm -rf "$targetdir/$site/submit.sh.shortq"
+			else
+				echo "submit.sh.shortq not exists,create a new one"
 			fi
 		fi
 		echo "qsub -q dyb64q job_${runNum}.csh" >> $targetdir/$site/submit.sh

@@ -14,35 +14,24 @@ LafMain.Dlls += {"IBDSel"};
 AlgMgr.Contents += {"IBDSel"};
 
 //====================================
-
 //IBDSel.PromptEnergyLow = 0.7;  // MeV
-IBDSel.PromptEnergyLow = 1.5;  // MeV
+IBDSel.PromptEnergyLow = 0.7;  // MeV
 IBDSel.PromptEnergyHigh = 12.; // MeV
 IBDSel.PromptEnergyHigh4Fn = 200.; // MeV
-IBDSel.DelayedEnergyLow4Li = 1.9;  // MeV
-IBDSel.DelayedEnergyHigh4Li = 2.8;  // MeV
-IBDSel.DelayedEnergyLow = 1.928;  // MeV
-IBDSel.DelayedEnergyHigh = 2.786;  // MeV
-IBDSel.IbdTimeIntervalMin = 0.;  // 1 us
-IBDSel.IbdTimeIntervalMax = 4.e-4; // 200 us
-IBDSel.IbdDisInterval = 500; // mm
-IBDSel.Time2LastBufEvent = 4.e-4;
+IBDSel.DelayedEnergyLow = 6.;  // MeV
+IBDSel.DelayedEnergyHigh = 12.;  // MeV
+IBDSel.IbdTimeIntervalMin = 1.e-6;  // 1 us
+IBDSel.IbdTimeIntervalMax = 2.e-4; // 200 us
+IBDSel.Time2LastBufEvent = 2.e-4;
 //IBDSel.Time2PreAdEvent = 2.e-4;
 //IBDSel.Time2NextAdEvent = 2.e-4;
-IBDSel.DelayedTrigTime2AdMuon = 0.;
-IBDSel.DelayedTrigTime2IWpMuon = 0.;
-IBDSel.DelayedTrigTime2OWpMuon = 0.;
-IBDSel.DelayedTrigTime2RpcMuon = 0.;
-IBDSel.DelayedTrigTime2AdShowerMuon = 0.;
-IBDSel.PromptTrigTime2AdShowerMuon = 1.0004;
+IBDSel.DelayedTrigTime2AdMuon = 1.e-3;
+IBDSel.DelayedTrigTime2IWpMuon = 6.e-4;
+IBDSel.DelayedTrigTime2OWpMuon = 6.e-4;
+IBDSel.DelayedTrigTime2RpcMuon = 6.e-4;
+IBDSel.DelayedTrigTime2AdShowerMuon = 1.;
 IBDSel.AdMuonELow = 20.;//no use
 IBDSel.AdMuonEHigh =2500.;
-
-IBDSel.DelayedTrigTime2AdMuon4Li=0.;
-IBDSel.DelayedTrigTime2IWpMuon4Li=0.;
-IBDSel.DelayedTrigTime2OWpMuon4Li=0.;
-IBDSel.DelayedTrigTime2RpcMuon4Li=0.;
-IBDSel.DelayedTrigTime2AdShowerMuon4Li=0.;
 
 //====================================
 //input service and files
@@ -93,19 +82,14 @@ GlobalVar.NumADs = 4;
 //===================================
 //MuonVeto related configuration
 MuonTag.IwsNPmtThreshold = 12;
-MuonTag.OwsNPmtThreshold = 15;
+MuonTag.OwsNPmtThreshold = 12;
 MuonTag.tagRPCMuon = USERPC;
 MuonTag.tagADMuon  = FALSE;
 MuonTag.AdMuonThreshold = 20.; // MeV
 MuonTag.ShowerMuonThreshold = 2500.; // MeV
 
-MuonVeto.PreVetoWindow = 4.e-4; // s
-MuonVeto.MuVetoWindow = 4.e-4; // s
-MuonVeto.AdMuVetoWindow = 8.e-4; // s
-MuonVeto.ShowerMuVetoWindow = 1.0004; // s
-MuonVeto.MuVetoWindow4IbdSel=4.e-4;
-MuonVeto.AdMuVetoWindow4IbdSel=8.e-4;
-MuonVeto.ShowerMuVetoWindow4IbdSel=0.002;
-
-
+MuonVeto.MuVetoWindow = 6.e-4; // s
+MuonVeto.AdMuVetoWindow = 1.e-3; // s
+MuonVeto.ShowerMuVetoWindow = 1.; // s
+MuonVeto.PreVetoWindow = 2.e-6; // s
 MuonVeto.useRPCVeto = USERPC;
