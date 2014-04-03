@@ -48,10 +48,10 @@ typedef struct isoItems
     double N_val_low;
     double N_val_high;
     Color_t linecolor;
-    double tauInSlice[599];
-    double tauErrInSlice[599];
-    double numInSlice[599];
-    double numErrInSlice[599];
+    double tauInSlice[6];
+    double tauErrInSlice[6];
+    double numInSlice[6];
+    double numErrInSlice[6];
     RooRealVar* fitTau;
     RooRealVar* fitNum;
     double num;
@@ -85,22 +85,16 @@ typedef struct FitInf
     double ehigh;
     double xlow;
     double xhigh;
-    double exMuonRate;
-    int reBin;
     string com[10];//component
     string con;//contour
-    double muonRate[599];
-    double muonEnergy[599];
-    double daqTime;
-    double liveTime;
+    double muonRate[7];
     map<string,isoItem> comMap;
     RooAddPdf* timeFitPdf;
     RooAddPdf* specFitPdf;
-    RooDataSet* unBinnedData[599];
-    RooDataHist* binnedData[599];
+    RooDataSet* unBinnedData[7];
+    RooDataHist* binnedData[7];
     int ndf;
-    int sliceNum;
-    double chi[599];
+    double chi[7];
 }fitInf;
 
 map<string,isoItem> iso;
@@ -167,138 +161,36 @@ void genFitPdf(fitInf& fitinf)
     std::cout<<Form(">>> >>> prepare %-3s fit SpecFitPdf ",fitinf.mode.c_str())<<endl;
     fitinf.specFitPdf=new RooAddPdf("specMode","specMode",specFitComList,specFitNumList);
 }
-void calDaqTime(fitInf& fitinf,string dataVer,string site)
-{
-	string runnum;
-	TH1F* h[5];//the fifth is for daqtime
-	Double_t totalTime[5]={0.};
-    double tlivetime=0.;
-	string filename;
-    filename.assign(dataVer);
-    filename+="/";
-    filename+=site;
-    filename+="Time_";
-    filename+=dataVer;
-    filename+="_multiSlice.root";
-    TFile* f=new TFile(filename.c_str());
-	for( int i=0 ; i<5 ; i++ )
-	{
 
-		stringstream hname;
-		if( i==4 )
-		{
-			hname<<"LiveTime/DaqTime";
-		} else
-		{
-			hname<<"LiveTime/AD";
-			hname<<i+1;
-			hname<<"LiveTime";	
-		}
-		h[i] = (TH1F*)f->Get(hname.str().c_str());
-		if( !(h[i]) )
-		{
-			cout<<"Can not get Hist : "<<hname.str()<<" from "<<site<<"/"<<runnum<<" ."<<endl;
-            continue;
-		}
-	}
-	
-	TAxis *xaxis = h[0]->GetXaxis();
-	int binNum = xaxis->GetNbins();
-    int BinBound=h[0]->FindBin(1346428800);//2012.9.1 0:0:0
-    double daqtDel=0.;
-    if( BinBound!=0 )
-    {
-	    if( site=="EH2" )
-	    {
-	        for(int j=1  ; j<=BinBound ; j++ )
-	        {
-	            h[1]->SetBinContent(j,0);
-                daqtDel+=h[4]->GetBinContent(j);
-	        }
-            for( int j=1 ; j<binNum ; j++ )
-            {
-	            h[2]->SetBinContent(j,0);
-	            h[3]->SetBinContent(j,0);
-            }
-            
-	    }else if( site=="EH3" )
-	    {
-	        for(int j=1  ; j<=BinBound ; j++ )
-	        {
-	            h[3]->SetBinContent(j,0);
-                daqtDel+=h[4]->GetBinContent(j);
-	        }
-	    }else
-        {
-            for( int j=1 ; j<binNum ; j++ )
-            {
-	            h[2]->SetBinContent(j,0);
-	            h[3]->SetBinContent(j,0);
-            }
-        }
-    }
-	for( int i=0 ; i<5 ; i++ )
-	{
-		totalTime[i]=0.;
-		for( int j=1 ; j<=binNum ; j++ )
-		{
-			totalTime[i]+=h[i]->GetBinContent(j);
-		}
-		
-	}
-	for( int i=0 ; i<4 ; i++ )
-	{
-	    tlivetime+=totalTime[i];
-	}
-    fitinf.liveTime=tlivetime;
-    double totalDaqtime=0.;
-    if( site=="EH2" )
-    {
-        totalDaqtime=totalTime[4]*2-daqtDel;
-    }else if( site=="EH3" )
-    {
-        totalDaqtime=totalTime[4]*4-daqtDel;
-    } else
-    {
-        totalDaqtime=totalTime[4]*2;
-    }
-    fitinf.daqTime=totalDaqtime;
-}
 void genData(fitInf& fitinf, string dataVer,string site)
 {
     //TODO 5 slice for time fit
     std::cout<<Form(">>> >>> prepare %-3s fit data ",fitinf.mode.c_str())<<endl;
-    //nameStr=Form("%sData_%s_multiSlice.root",site.c_str(),dataVer.c_str());
-    nameStr=Form("/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/job/%sData_%s_multiSlice.root",site.c_str(),dataVer.c_str());
+    nameStr=Form("%s/%siso_%s.root",dataVer.c_str(),site.c_str(),dataVer.c_str());
     TFile* f=new TFile(nameStr,"read");
-    string noRed;
-    if( fitinf.isNoRed  )
-    {
-        noRed="NoRed";
-    } else
-    {
-        noRed="";
-    }
-    nameStr=Form("sliceNum%s_%0.2f_%0.1f_%0.1f",noRed.c_str(),fitinf.exMuonRate,fitinf.elow,fitinf.ehigh);
-    std::cout<<"nameStr  : "<<nameStr<<endl;
-    TH1F* h0=(TH1F*)f->Get(nameStr);
-    fitinf.sliceNum=(int)(h0->GetBinContent(1));
-    for( int i=2 ; i<=fitinf.sliceNum+1 ; i++ )
-    {
-        fitinf.muonRate[i-2]=(h0->GetBinContent(i)-(int)(h0->GetBinContent(i)/10)*10.);
-        fitinf.muonEnergy[i-2]=(double)((int)(h0->GetBinContent(i)/10));
-    }
-    
-    TH1F* h[fitinf.sliceNum];
-    TH1F* h1[fitinf.sliceNum];
-    TTree* t[fitinf.sliceNum];
-    for( int i=0 ; i<fitinf.sliceNum ; i++ )
+    TH1F* h[7];
+    TH1F* h1[7];
+    TTree* t[7];
+    for( int i=0 ; i<6 ; i++ )
     {
         if( fitinf.isbinned )
         {
-            
-            nameStr=Form("time2lastshowermuon%s_%0.2f_%i_%0.1f_%0.1f",noRed.c_str(),fitinf.exMuonRate,i+1,fitinf.elow,fitinf.ehigh);
-            std::cout<<"binned histogram  : "<<nameStr<<endl;
+            if( fitinf.isNoRed )
+            {
+                nameStr=Form("time2lastshowermuonNoRed%i_%0.1f_%0.1f",i+1,fitinf.elow,fitinf.ehigh);
+                if( i==5 )
+                {
+                   nameStr=Form("time2AllmuonNoRed_%0.1f_%0.1f",fitinf.elow,fitinf.ehigh); 
+                }
+                
+            }else
+            {
+                nameStr=Form("time2lastshowermuon%i_%0.1f_%0.1f",i+1,fitinf.elow,fitinf.ehigh);
+                if( i==5 )
+                {
+                   nameStr=Form("time2Allmuon_%0.1f_%0.1f",fitinf.elow,fitinf.ehigh); 
+                }
+            }
             h[i]=(TH1F*)f->Get(nameStr);
 		    int hmax=h[i]->FindBin(fitinf.xhigh);
 		    int hmin=h[i]->FindBin(fitinf.xlow);
@@ -311,25 +203,39 @@ void genData(fitInf& fitinf, string dataVer,string site)
 		    }
 		
 		    h1[i]->SetOption("E1");
-		    h1[i]->Rebin(fitinf.reBin);
+		    h1[i]->Rebin(5);
 		    fitinf.ndf=h1[i]->GetNbinsX()-fitinf.comMap.size()-1;
-            fitinf.binnedData[i]=new RooDataHist(Form("%stime2lastmuonBinned%i",fitinf.mode.c_str(),i+1),"time2lastmuon binned data",*xt,h1[i]);
+            fitinf.binnedData[i]=new RooDataHist(Form("%stime2lastmuonBinned",fitinf.mode.c_str()),"time2lastmuon binned data",*xt,h1[i]);
         }else
         {
-	        nameStr2=Form("slice%s_%0.2f_%i_%0.1f_%0.1f",noRed.c_str(),fitinf.exMuonRate,i+1,fitinf.elow,fitinf.ehigh);
-            std::cout<<"unbinned tree  : "<<nameStr2<<endl;
+	        if( fitinf.isNoRed )
+	        {
+	            nameStr2=Form("sliceNoRed%i_%0.1f_%0.1f",i+1,fitinf.elow,fitinf.ehigh);
+                if( i==5 )
+                {
+                    nameStr2=Form("sliceNoRed6_%0.1f_%0.1f",fitinf.elow,fitinf.ehigh);
+                }
+	        }else
+	        {
+	            nameStr2=Form("slice%i_%0.1f_%0.1f",i+1,fitinf.elow,fitinf.ehigh);
+                if( i==5 )
+                {
+                    nameStr2=Form("slice6_%0.1f_%0.1f",fitinf.elow,fitinf.ehigh);
+                }
+	        }
 	        t[i]=(TTree*)f->Get(nameStr2);
-            fitinf.unBinnedData[i]=new RooDataSet(Form("%stime2lastmuon%i",fitinf.mode.c_str(),i+1),"time2lastmuon unbinned data",t[i],*xt);
+            fitinf.unBinnedData[i]=new RooDataSet(Form("%stime2lastmuon",fitinf.mode.c_str()),"time2lastmuon unbinned data",t[i],*xt);
         }
     }
 
-    //nameStr=Form("%sSpec_%0.1f_%0.1f",fitinf.mode.c_str(),fitinf.elow,fitinf.ehigh);
-    //h[6]=(TH1F*)f->Get(nameStr);
-    //fitinf.binnedData[6]=new RooDataHist(Form("%sspecBinned",fitinf.mode.c_str()),"spec binned data",*xe,h[6]);
+    nameStr=Form("%sSpec_%0.1f_%0.1f",fitinf.mode.c_str(),fitinf.elow,fitinf.ehigh);
+    h[6]=(TH1F*)f->Get(nameStr);
+    fitinf.binnedData[6]=new RooDataHist(Form("%sspecBinned",fitinf.mode.c_str()),"spec binned data",*xe,h[6]);
 
     //f->Close();
 }
-void prepareInf( string dataVer,string site,string fitmode,double exRate,bool isbinned,int reBin)
+
+void prepareInf( string dataVer,string site,string fitmode)
 {
     //fit information
     xt=new RooRealVar("xt","x for time fit",0,1);
@@ -353,10 +259,10 @@ void prepareInf( string dataVer,string site,string fitmode,double exRate,bool is
     iso.insert(map<string,isoItem>::value_type("He8",isoHe8));
     iso.insert(map<string,isoItem>::value_type("Bkg",isoBkg));
     std::cout<<"done iso "<<endl;
-    fitInf fitB12={"B12",1,isbinned,4.0 ,20.0,0.001,0.501,exRate,reBin,{"B12","N12","C9","He8","Li9","Li8","B8","Bkg"},"N12"};
-    fitInf fitN12={"N12",1,isbinned,14.0,20.0,0.001,0.501,exRate,reBin ,{"N12","C9","Li8","B8","Bkg"},"C9"};
-    fitInf fitLi8={"Li8",1,isbinned,4.0 ,20.0,0.8  ,10.  ,exRate,reBin,{"Li8","B8","C9","Bkg"},"B8"};
-    fitInf fitC9 ={"C9" ,1,isbinned,12.0,20.0,0.15 ,2.0  ,exRate,reBin,{"C9" ,"He8","B8","Li8","Bkg"},"Li8"};
+    fitInf fitB12={"B12",1,1,4.0 ,20.0,0.001,0.501,{"B12","N12","C9","He8","Li9","Li8","B8","Bkg"},"N12"};
+    fitInf fitN12={"N12",1,1,14.0,20.0,0.001,0.501,{"N12","C9","He8","Li9","Bkg"},"C9"};
+    fitInf fitLi8={"Li8",1,1,4.0 ,20.0,0.8  ,10.  ,{"Li8","B8","C9","Bkg"},"B8"};
+    fitInf fitC9 ={"C9" ,1,1,12.0,20.0,0.15 ,2.0  ,{"C9" ,"B8","Li8","Bkg"},"Li8"};
     fit.insert(map<string,fitInf>::value_type("B12",fitB12));
     fit.insert(map<string,fitInf>::value_type("N12",fitN12));
     fit.insert(map<string,fitInf>::value_type("Li8",fitLi8));
@@ -380,16 +286,35 @@ void prepareInf( string dataVer,string site,string fitmode,double exRate,bool is
        }
     }
     
-    genFitPdf(fit[fitmode]);calDaqTime(fit[fitmode],dataVer,site);genData(fit[fitmode],dataVer,site);
+    genFitPdf(fit[fitmode]);genData(fit[fitmode],dataVer,site);
 }
 
 
-int doFit(int siteNum,string dataVer,string fitMode,double exRate,bool isbinned,int reBin,double fitLowRange,double fitHighRange)
+
+int doFit(int siteNum,string dataVer,string fitMode,double fitLowRange,double fitHighRange)
 {
 
 //===>initialize variable
 	bool anaIso=1;//N12/B12 bg
     //bool anaE=0;
+    int ADNumOfSite[3]={0};
+    int daqHistNum=5;
+    if( dataVer.find("13")!=string::npos || dataVer.find("14")!=string::npos || dataVer.find("15")!=string::npos || dataVer.find("16")!=string::npos)
+    {
+        ADNumOfSite[0]=2;
+        ADNumOfSite[1]=2;
+        ADNumOfSite[2]=4;
+        daqHistNum=5;
+    } else
+    {
+        if( dataVer.find("11")!=string::npos || dataVer.find("12")!=string::npos )
+        {
+            ADNumOfSite[0]=2;
+            ADNumOfSite[1]=1;
+            ADNumOfSite[2]=3;
+            daqHistNum=4;
+        }
+    }
 	string site;
 	if( siteNum==1 )
 	{
@@ -405,6 +330,122 @@ int doFit(int siteNum,string dataVer,string fitMode,double exRate,bool isbinned,
 		site="EH1";
 	}
 
+//===>initialize histograms
+	//livetime
+	string runnum;
+	TH1F* h[5];//the fifth is for daqtime
+	Double_t totalTime[5]={0.};
+
+	//B12 N12
+    double tlivetime=0.;
+	TH1F* showermuonNum[6]; 
+    //TH1F* time2lastshowermuon[6];
+    //TH1F* B12Result[5];
+    //TH1F* hh[6];
+    
+//===>get histograms from .root file for analyse
+	string filename;
+    filename.assign(dataVer);
+    filename+="/";
+    filename+=site;
+    filename+="totalHisto_";
+    filename+=dataVer;
+    filename+=".root";
+    TFile* f=new TFile(filename.c_str());
+
+	//livetime
+	for( int i=0 ; i<5 ; i++ )
+	{
+
+		stringstream hname;
+		if( i==4 )
+		{
+			hname<<"LiveTime/DaqTime";
+		} else
+		{
+			hname<<"LiveTime/AD";
+			hname<<i+1;
+			hname<<"LiveTime";	
+		}
+		h[i] = (TH1F*)f->Get(hname.str().c_str());
+		if( !(h[i]) )
+		{
+			cout<<"Can not get Hist : "<<hname.str()<<" from "<<site<<"/"<<runnum<<" ."<<endl;
+			//return true;
+            continue;
+		}
+	}
+
+	//B12 N12
+    if(anaIso)
+	{
+        for( int i=0 ; i<6 ; i++ )
+        {
+            TString hnameLi;
+            hnameLi="lidj/showermuonNumNoRed";
+            //hnameLi="lidj/showermuonNum";
+            hnameLi+=i+1;
+            showermuonNum[i]=(TH1F*)f->Get(hnameLi);
+        }
+	}
+	
+//===>calculate livetime and muonrate 
+	TAxis *xaxis = h[0]->GetXaxis();
+	int binNum = xaxis->GetNbins();
+	//livetime
+    int BinBound=h[0]->FindBin(1346428800);//2012.9.1 0:0:0
+    double daqtDel=0.;
+    if( BinBound!=0 )
+    {
+	    if( site=="EH2" )
+	    {
+	        for(int j=1  ; j<=BinBound ; j++ )
+	        {
+	            h[1]->SetBinContent(j,0);
+                daqtDel+=h[4]->GetBinContent(j);
+	        }
+	    }
+	    if( site=="EH3" )
+	    {
+	        for(int j=1  ; j<=BinBound ; j++ )
+	        {
+	            h[3]->SetBinContent(j,0);
+                daqtDel+=h[4]->GetBinContent(j);
+	        }
+	    }
+    }
+	for( int i=0 ; i<5 ; i++ )
+	{
+		totalTime[i]=0.;
+		for( int j=1 ; j<=binNum ; j++ )
+		{
+			totalTime[i]+=h[i]->GetBinContent(j);
+		}
+		
+	}
+    double totalDaqtime=0.;
+    if( site=="EH2" )
+    {
+        totalDaqtime=totalTime[4]*2-daqtDel;
+    }else if( site=="EH3" )
+    {
+        totalDaqtime=totalTime[4]*4-daqtDel;
+    } else
+    {
+        totalDaqtime=totalTime[4]*2;
+    }
+    //muon rate
+	double NumMuon[6]={0.};
+	double RateMuon[6]={0.};
+	for( int j=0 ; j<5 ; j++ )
+	{
+		for( int jbin=0 ; jbin<binNum ; jbin++ )
+	    {
+	        NumMuon[j]+=showermuonNum[j]->GetBinContent(jbin);
+	    }
+		RateMuon[j]=NumMuon[j]/totalDaqtime;
+        RateMuon[5]+=RateMuon[j];
+	}
 
 //===> fit iso
     std::cout<<"begin to analyse B12 "<<endl;
@@ -418,7 +459,7 @@ int doFit(int siteNum,string dataVer,string fitMode,double exRate,bool isbinned,
         //B12Result[3]= new TH1F("B12YieldAD3", "AD3", 5, showerTh);
         //B12Result[4]= new TH1F("B12YieldAD4", "AD4", 5, showerTh);
         
-        prepareInf(dataVer,site,fitMode,exRate,isbinned,reBin);   
+        prepareInf(dataVer,site,fitMode);   
         bool draw6slices=0;
         if( fitLowRange!=0 && fitHighRange!=0 )
         {
@@ -439,10 +480,10 @@ int doFit(int siteNum,string dataVer,string fitMode,double exRate,bool isbinned,
         }
         for( int ihist=0 ; ihist<1 ; ihist++ )
         {
-			for( int j=0 ; j<fit[fitMode].sliceNum ; j++ )
+			for( int j=0 ; j<6 ; j++ )
 			{
-                std::cout<<">>>>>>>>>>>> now is  : "<<j+1<<endl;
-                rateMu->setVal(-fit[fitMode].muonRate[j]);
+                std::cout<<"now is  : "<<j+1<<endl;
+                rateMu->setVal(-RateMuon[j]);
                 //Num_tot[j]=hh[j]->Integral(1,hh[j]->FindBin(fit[fitMode].xhigh));
                 if( fit[fitMode].isbinned  )
                 {
@@ -513,8 +554,18 @@ int doFit(int siteNum,string dataVer,string fitMode,double exRate,bool isbinned,
                 }
 			}
 	        
+	        if( ihist==0 )
+	        {
+	            for( int i=0 ; i<ADNumOfSite[siteNum-1] ; i++ )
+	            {
+	                tlivetime+=totalTime[i];
+	            }
+	        }else
+	        {
+	            tlivetime=totalTime[ihist-1];
+	        }
             std::cout<<" "<<endl;
-            std::cout<<"livetime  : "<<fit[fitMode].liveTime/(24*3600)<<endl;
+            std::cout<<"livetime  : "<<tlivetime/(24*3600)<<endl;
 
             std::cout<<" Slice |";
             //for(  map<string,isoItem>::iterator it=fit[fitMode].comMap.begin() ; it!=fit[fitMode].comMap.end() ; it++ )
@@ -522,22 +573,21 @@ int doFit(int siteNum,string dataVer,string fitMode,double exRate,bool isbinned,
             {
                 std::cout<<Form("    %-6s |",iso[fit[fitMode].com[k]].isoName.c_str());
             }
-            std::cout<<" MuonRate | MuonEnergy |";
+            std::cout<<" MuonRate |";
             if( fit[fitMode].isbinned )
             {
                 std::cout<<"    chi/ndf ";
             }
             std::cout<<endl;
 
-	        for( int j=0 ; j<fit[fitMode].sliceNum ; j++ )
+	        for( int j=0 ; j<6 ; j++ )
 	        {
                 std::cout<<Form(" %5i |",j);//"│" | | ｜｜
                 for( int k=0;k<(int)(fit[fitMode].comMap.size());k++) 
                 {
                     std::cout<<Form(" %9.1f |",fit[fitMode].comMap[fit[fitMode].com[k]].numInSlice[j]);//can't use "iso[fit[fitMode].com[k]]",not is reference type.
                 }
-                std::cout<<Form(" %8.5f |",fit[fitMode].muonRate[j]);
-                std::cout<<Form(" %10.0f |",fit[fitMode].muonEnergy[j]);
+                std::cout<<Form(" %8.5f |",RateMuon[j]);
                 if( fit[fitMode].isbinned )
                 {
                     std::cout<<Form(" %8.2f/%i= %5.2f",fit[fitMode].chi[j],fit[fitMode].ndf,fit[fitMode].chi[j]/fit[fitMode].ndf); 
@@ -548,10 +598,16 @@ int doFit(int siteNum,string dataVer,string fitMode,double exRate,bool isbinned,
             std::cout<<"      |       Total number      |     Rate(/day/AD) "<<endl;
             for( int k=0;k<(int)(fit[fitMode].comMap.size());k++) 
             {
-                fit[fitMode].comMap[fit[fitMode].com[k]].rate=fit[fitMode].comMap[fit[fitMode].com[k]].num/(fit[fitMode].liveTime/(24*3600));
-                fit[fitMode].comMap[fit[fitMode].com[k]].rateErr=sqrt(fit[fitMode].comMap[fit[fitMode].com[k]].numErr)/(fit[fitMode].liveTime/(24*3600));
+                fit[fitMode].comMap[fit[fitMode].com[k]].rate=fit[fitMode].comMap[fit[fitMode].com[k]].num/(tlivetime/(24*3600));
+                fit[fitMode].comMap[fit[fitMode].com[k]].rateErr=sqrt(fit[fitMode].comMap[fit[fitMode].com[k]].numErr)/(tlivetime/(24*3600));
 	            std::cout<<Form(" %-3s  | %10.1f +- %8.1f  | %7.1f +- %7.1f",fit[fitMode].comMap[fit[fitMode].com[k]].isoName.c_str(),fit[fitMode].comMap[fit[fitMode].com[k]].num,sqrt(fit[fitMode].comMap[fit[fitMode].com[k]].numErr),fit[fitMode].comMap[fit[fitMode].com[k]].rate,fit[fitMode].comMap[fit[fitMode].com[k]].rateErr)<<endl;
             }
+            
+            for( int j=0 ; j<6 ; j++ )
+            {
+                std::cout<<"muon rate  : "<<RateMuon[j]<<endl;
+            }
+            
         }
 
         /*
@@ -596,99 +652,35 @@ int doFit(int siteNum,string dataVer,string fitMode,double exRate,bool isbinned,
         */
 	}	
 	
-
-//===>write into .root .text file
-
-    nameStr=Form("/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/job/%s_%s_%s_%0.2f_%i_%i.root",dataVer.c_str(),site.c_str(),fitMode.c_str(),fit[fitMode].exMuonRate,fit[fitMode].isbinned,fit[fitMode].reBin);
-    TFile* file = new TFile(nameStr,"RECREATE");
-    double eBin[599]={0.};
-    eBin[0]=20.;
-    for( int i=0 ; i<fit[fitMode].sliceNum ; i++ )
-    {
-        eBin[i+1]=fit[fitMode].muonEnergy[i];
-    }
-    
-    if( fit[fitMode].isbinned )
-    {
-        nameStr=Form("%s_binnedFit_chi",fitMode.c_str());
-        TH1F* h=new TH1F(nameStr,nameStr,fit[fitMode].sliceNum,eBin);
-        for( int i=0 ; i<fit[fitMode].sliceNum ; i++ )
-        {
-            h->SetBinContent(i+1,fit[fitMode].chi[i]/fit[fitMode].ndf);
-        }
-        h->Write();
-        delete h;
-
-    }
-    nameStr="muonRate";
-    nameStr2="muonRate in each slice";
-    TH1F* h1=new TH1F(nameStr,nameStr2,fit[fitMode].sliceNum,eBin);
-    for( int i=0 ; i<fit[fitMode].sliceNum ; i++ )
-    {
-        h1->SetBinContent(i+1,fit[fitMode].muonRate[i]);
-    }
-    h1->Write();
-    delete h1;
-
-    for( int k=0;k<(int)(fit[fitMode].comMap.size());k++) 
-    {
-        nameStr=Form("%s",fit[fitMode].com[k].c_str());
-        nameStr2=Form("%s entries in each slice",fit[fitMode].com[k].c_str());
-        TH1F* h=new TH1F(nameStr,nameStr2,fit[fitMode].sliceNum,eBin);
-        for( int i=0 ; i<fit[fitMode].sliceNum ; i++ )
-        {
-            h->SetBinContent(i+1,fit[fitMode].comMap[fit[fitMode].com[k]].numInSlice[i]);
-            h->SetBinError(i+1,fit[fitMode].comMap[fit[fitMode].com[k]].numErrInSlice[i]);
-        }
-        h->Write();
-        delete h;
-    }
-    
-    file->Close();
-
-	ofstream outfile;
-    nameStr=Form("/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/job/%s_%s_%s_%0.2f_%i_%i.txt",dataVer.c_str(),site.c_str(),fitMode.c_str(),fit[fitMode].exMuonRate,fit[fitMode].isbinned,fit[fitMode].reBin);
-	outfile.open(nameStr);
-    outfile<<" "<<endl;
-    outfile<<"livetime  : "<<fit[fitMode].liveTime/(24*3600)<<endl;
-
-    outfile<<" Slice |";
-    //for(  map<string,isoItem>::iterator it=fit[fitMode].comMap.begin() ; it!=fit[fitMode].comMap.end() ; it++ )
-    for( int k=0;k<(int)(fit[fitMode].comMap.size());k++) 
-    {
-        outfile<<Form("    %-6s |",iso[fit[fitMode].com[k]].isoName.c_str());
-    }
-    outfile<<" MuonRate | MuonEnergy |";
-    if( fit[fitMode].isbinned )
-    {
-        outfile<<"    chi/ndf ";
-    }
-    outfile<<endl;
-
-	for( int j=0 ; j<fit[fitMode].sliceNum ; j++ )
+//===>print live time result
+	std::cout<<""<<endl;
+	std::cout<<site <<"'s infomation : "<<endl;
+	std::cout<<""<<endl;
+	for( int i=0 ; i<ADNumOfSite[siteNum-1] ; i++ )
 	{
-        outfile<<Form(" %5i |",j);//"│" | | ｜｜
-        for( int k=0;k<(int)(fit[fitMode].comMap.size());k++) 
-        {
-            outfile<<Form(" %9.1f |",fit[fitMode].comMap[fit[fitMode].com[k]].numInSlice[j]);//can't use "iso[fit[fitMode].com[k]]",not is reference type.
-        }
-        outfile<<Form(" %8.5f |",fit[fitMode].muonRate[j]);
-        outfile<<Form(" %10.0f |",fit[fitMode].muonEnergy[j]);
-        if( fit[fitMode].isbinned )
-        {
-            outfile<<Form(" %8.2f/%i= %5.2f",fit[fitMode].chi[j],fit[fitMode].ndf,fit[fitMode].chi[j]/fit[fitMode].ndf); 
-        }
-        outfile<<endl;
-        
+		std::cout<<"Total AD"<<i+1<<"LiveTime                         : "<<totalTime[i]/(24*3600)<<endl;
 	}
-    outfile<<"      |       Total number      |     Rate(/day/AD) "<<endl;
-    for( int k=0;k<(int)(fit[fitMode].comMap.size());k++) 
-    {
-        fit[fitMode].comMap[fit[fitMode].com[k]].rate=fit[fitMode].comMap[fit[fitMode].com[k]].num/(fit[fitMode].liveTime/(24*3600));
-        fit[fitMode].comMap[fit[fitMode].com[k]].rateErr=sqrt(fit[fitMode].comMap[fit[fitMode].com[k]].numErr)/(fit[fitMode].liveTime/(24*3600));
-	    outfile<<Form(" %-3s  | %10.1f +- %8.1f  | %7.1f +- %7.1f",fit[fitMode].comMap[fit[fitMode].com[k]].isoName.c_str(),fit[fitMode].comMap[fit[fitMode].com[k]].num,sqrt(fit[fitMode].comMap[fit[fitMode].com[k]].numErr),fit[fitMode].comMap[fit[fitMode].com[k]].rate,fit[fitMode].comMap[fit[fitMode].com[k]].rateErr)<<endl;
-    }
-	outfile.close();
+	std::cout<<"Total DaqTime : "<<totalTime[4]/(24*3600)<<" day" <<endl;
+	std::cout<<""<<endl;
+
+//===>write into .root file
+//string rootname=site;
+//rootname+="FitResult_"+dataVer+".root";
+//TFile* file = new TFile(rootname.c_str(),"RECREATE");
+//file->cd();
+//for( int i=0 ; i<5 ; i++ )
+//{
+//h[i]->Write();
+//}
+//if( anaIso )
+//{
+//for( int i=0 ; i<5 ; i++ )
+//{
+//hh[i]->Write();
+//}
+////B12Result[0]->Write();
+//}
+//file->Close();
 	return 0;
 }
 
@@ -764,10 +756,10 @@ vector<string> checkdata(string dataVer)
             runlistName.assign(verSuf);
             runlistName+="/";
             runlistName+=runlistSiteNum[i];
-            runlistName+="Time";
+            runlistName+="totalHisto";
             runlistName+=verSuf;
             //runlistName+=*it;
-            runlistName+="_multiSlice.root";
+            runlistName+=".root";
             TFile *ff = new TFile(runlistName.c_str());
             if( ff->IsZombie() )
             {
@@ -799,22 +791,20 @@ int main(int argc, char *argv[])
     string dataVer;
     int siteNum=0;
     string FitMode;
-    double exRate=0.;
-    int isbinned=0;
-    int reBin=0;
     double FitLowRange=0.;
     double FitHighRange=0.;
+    std::cout<<"argc  : "<<argc<<endl;
     dataVer=argv[1];
+    std::cout<<"dataVer  : "<<dataVer<<endl;
     siteNum=atoi(argv[2]);
+    std::cout<<"siteNum  : "<<siteNum<<endl;
     FitMode=argv[3];
-    exRate=atof(argv[4]);
-    isbinned=atoi(argv[5]);
-    reBin=atoi(argv[6]);
-    if( argc==9 )
+    std::cout<<"FitMode  : "<<FitMode<<endl;
+    if( argc==6 )
     {
-        FitLowRange=atof(argv[7]);
+        FitLowRange=atof(argv[4]);
         std::cout<<"FitLowRange  : "<<FitLowRange<<endl;
-        FitHighRange=atof(argv[8]);
+        FitHighRange=atof(argv[5]);
         std::cout<<"FitHighRange  : "<<FitHighRange<<endl;
     }
     vector<string> dataVerVec=checkdata(dataVer);
@@ -839,7 +829,7 @@ int main(int argc, char *argv[])
         {
             std::cout<<"====> begin to analyse EH"<<i<<"'s DaqTime, N12/B12 "<<endl;
             std::cout<<"dataVersion  : "<<dataVer<<endl;
-            doFit(i,dataVer,FitMode,exRate,isbinned,reBin,FitLowRange,FitHighRange);
+            doFit(i,dataVer,FitMode,FitLowRange,FitHighRange);
             std::cout<<" "<<endl;
             std::cout<<" "<<endl;
             std::cout<<" "<<endl;
@@ -850,7 +840,7 @@ int main(int argc, char *argv[])
     {
         std::cout<<"====> begin to analyse EH"<<siteNum<<"'s DaqTime,N12/B12 "<<endl;
         std::cout<<"dataVersion  : "<<dataVer<<endl;
-        doFit(siteNum,dataVer,FitMode,exRate,isbinned,reBin,FitLowRange,FitHighRange);
+        doFit(siteNum,dataVer,FitMode,FitLowRange,FitHighRange);
         std::cout<<" "<<endl;
         std::cout<<" "<<endl;
         std::cout<<" "<<endl;
