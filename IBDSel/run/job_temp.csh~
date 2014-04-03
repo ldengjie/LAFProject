@@ -1,0 +1,7 @@
+#/bin/tcsh
+source /afs/ihep.ac.cn/users/l/lidj/.laf_opt
+cd /afs/ihep.ac.cn/users/l/lidj/file/NtupleAna/NtupleAnaRelease/cmt
+source setup.csh
+source setup.csh
+cd /afs/ihep.ac.cn/users/l/lidj/file/IBDSel/run/P12C/RpcBad/SITE
+time laf.exe config_runRUNNUM.txt > log.runRUNNUM

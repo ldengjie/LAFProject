@@ -1,0 +1,66 @@
+#!/bin/bash
+
+#EH1
+#filedir="/dybfs/rec/P12C/GoodRun-part2-v0/EH1"
+#filedir="/dybfs/rec/Temp/ningzhe/P12C/EH1_good"
+filedir="/afs/ihep.ac.cn/users/l/lidj/file/runlist/P12C/RpcBad/GoodRun-part2-v0/EH1/"
+targetdir="/afs/ihep.ac.cn/users/l/lidj/file/IBDSel/run"
+
+pushd $filedir
+for filename in `ls *.list `;
+do
+#  runNum=${filename:3:5}
+  runNum=${filename:0:5}
+  echo $filename, $runNum
+    sed -e "s/RUNNUM/${runNum}/g"  \
+        -e "s/SITE/EH1/g"  $targetdir/config_temp.txt > $targetdir/P12C/RpcBad/EH1/config_run${runNum}.txt
+
+    sed -e "s/RUNNUM/${runNum}/g" \
+        -e "s/SITE/EH1/g"   $targetdir/job_temp.csh > $targetdir/P12C/RpcBad/EH1/job_${runNum}.csh
+    echo "qsub -q dyb64q job_${runNum}.csh" >> $targetdir/P12C/RpcBad/EH1/submit.sh
+done
+popd
+
+#EH2
+#filedir="/publicfs/dyb/data/rec/P12B/good_files_3sites_Feb17_May11_2012_v1/EH2"
+#filedir="/dybfs/rec/P12C/GoodRun-part2-v0/EH2"
+filedir="/afs/ihep.ac.cn/users/l/lidj/file/runlist/P12C/RpcBad/GoodRun-part2-v0/EH2/"
+#filedir="/dybfs/rec/Temp/ningzhe/P12C/EH2_good"
+targetdir="/afs/ihep.ac.cn/users/l/lidj/file/IBDSel/run"
+
+pushd $filedir
+for filename in `ls *.list `;
+do
+#  runNum=${filename:3:5}
+  runNum=${filename:0:5}
+  echo $filename, $runNum
+    sed -e "s/RUNNUM/${runNum}/g"  \
+        -e "s/SITE/EH2/g"  $targetdir/config_temp.txt > $targetdir/P12C/RpcBad/EH2/config_run${runNum}.txt
+
+    sed -e "s/RUNNUM/${runNum}/g" \
+        -e "s/SITE/EH2/g"   $targetdir/job_temp.csh > $targetdir/P12C/RpcBad/EH2/job_${runNum}.csh
+    echo "qsub -q dyb64q job_${runNum}.csh" >> $targetdir/P12C/RpcBad/EH2/submit.sh
+done
+popd
+
+#EH3
+#filedir="/publicfs/dyb/data/rec/P12B/good_files_3sites_Feb17_May11_2012_v1/EH3"
+#filedir="/dybfs/rec/P12C/GoodRun-part2-v0/EH3"
+filedir="/afs/ihep.ac.cn/users/l/lidj/file/runlist/P12C/RpcBad/GoodRun-part2-v0/EH3/"
+#filedir="/dybfs/rec/Temp/ningzhe/P12C/EH3_good"
+targetdir="/afs/ihep.ac.cn/users/l/lidj/file/IBDSel/run"
+
+pushd $filedir
+for filename in `ls *.list `;
+do
+#   runNum=${filename:3:5}
+  runNum=${filename:0:5}
+  echo $filename, $runNum
+    sed -e "s/RUNNUM/${runNum}/g"  \
+        -e "s/SITE/EH3/g"  $targetdir/config_temp.txt > $targetdir/P12C/RpcBad/EH3/config_run${runNum}.txt
+
+    sed -e "s/RUNNUM/${runNum}/g" \
+        -e "s/SITE/EH3/g"   $targetdir/job_temp.csh > $targetdir/P12C/RpcBad/EH3/job_${runNum}.csh
+    echo "qsub -q dyb64q job_${runNum}.csh" >> $targetdir/P12C/RpcBad/EH3/submit.sh
+done
+popd

@@ -1,0 +1,31 @@
+#by lidengjie@ihep.ac.cn 2013.10.21
+
+0.prepare
+  script dir:
+    /afs/ihep.ac.cn/users/l/lidj/file/IBDSel/run/P12A
+    |-- EH1
+    |-- EH2
+    `-- EH3
+  data dir :
+    /afs/ihep.ac.cn/users/l/lidj/largedata/IBD/P12A
+    |-- EH1
+    |-- EH2
+    |-- EH3
+    `-- log
+        |-- EH1
+            |-- EH2
+                `-- EH3
+
+1.modify gen.sh
+    inputFILELISTPATH="/publicfs/dyb/data/rec/P12A/GoodRunList_v3/physics"
+    outPUTFILEPATH="/afs/ihep.ac.cn/users/l/lidj/largedata/IBD/P12A"
+    logPath="/afs/ihep.ac.cn/users/l/lidj/largedata/IBD/P12A/log"
+    targetdir=$PWD/P12A
+
+2.no need to modify job_temp.csh and config_temp.txt
+
+3.must be used under bash shell
+
+    $ bash
+    $ source gen.sh
+
