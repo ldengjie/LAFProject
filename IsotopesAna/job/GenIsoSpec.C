@@ -29,6 +29,7 @@ int anaTree(int siteNum,string dataVer)
     chainFile+="bak20/";
     chainFile+=site;
     chainFile+="/*IsotopesAna.root";
+    std::cout<<"chainFile  : "<<chainFile<<endl;
     chain.Add(chainFile.c_str());
     std::cout<<"P12E : "<<chain.GetEntries()<<endl;
     if( dataVer=="P12E" )

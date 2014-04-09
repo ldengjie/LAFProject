@@ -189,6 +189,7 @@ void Ibd::Begin(TTree * /*tree*/)
 	}
 	tFnProEWithrpc=new TH1F("tFnProEWithrpc","Energy of promt signal with using rpc veto",nBins, EBins);
 	tFnProEWithoutrpc=new TH1F("tFnProEWithoutrpc","Energy of promt signal without using rpc veto",nBins, EBins);
+	tFnProEWithoutrpcUniX=new TH1F("tFnProEWithoutrpcUniX","Energy of promt signal without using rpc veto",198, 0.7,99.7);
    for(int i=0;i<ADNum;i++)
 	{
 		histname="AD";
@@ -322,6 +323,7 @@ Bool_t Ibd::Process(Long64_t entry)
 		t2lastmuonWithoutrpc[det-1]->Fill(t2lastmuonWoutrpc*1e6);
 		FnProEWithoutrpc[det-1]->Fill(energy[0],wt);
 		tFnProEWithoutrpc->Fill(energy[0],wt);
+		tFnProEWithoutrpcUniX->Fill(energy[0]);
         if( z[0]>0. )
         {
             UpperNum[det-1]++;
@@ -341,6 +343,7 @@ Bool_t Ibd::Process(Long64_t entry)
 		FnProEWithoutrpc[det-1]->Fill(energy[0],wt);
 		FnProEWithrpc[det-1]->Fill(energy[0],wt);
 		tFnProEWithoutrpc->Fill(energy[0],wt);
+		tFnProEWithoutrpcUniX->Fill(energy[0]);
 		tFnProEWithrpc->Fill(energy[0],wt);
         if( z[0]>0. )
         {
@@ -361,11 +364,13 @@ Bool_t Ibd::Process(Long64_t entry)
 	{
 		FnProEWithoutrpc[det-1]->Fill(energy[0],wt);
 		tFnProEWithoutrpc->Fill(energy[0],wt);
+		tFnProEWithoutrpcUniX->Fill(energy[0]);
 	} else if( isIbd==4 )
 	{
 		FnProEWithoutrpc[det-1]->Fill(energy[0],wt);
 		FnProEWithrpc[det-1]->Fill(energy[0],wt);
 		tFnProEWithoutrpc->Fill(energy[0],wt);
+		tFnProEWithoutrpcUniX->Fill(energy[0]);
 		tFnProEWithrpc->Fill(energy[0],wt);
 	} else if (isIbd==5)
 	{
@@ -428,12 +433,36 @@ void Ibd::Terminate()
 		double nEvt = tFnProEWithrpc->GetBinContent(i);
 		tFnProEWithrpc->SetBinError(i, sqrt(nEvt*BinWt[i]));
 		double nEvt0 = tFnProEWithoutrpc->GetBinContent(i);
+		double nEvt0UniX = tFnProEWithoutrpcUniX->GetBinContent(i);
 		tFnProEWithoutrpc->SetBinError(i, sqrt(nEvt0*BinWt[i]));
+		tFnProEWithoutrpcUniX->SetBinError(i, sqrt(nEvt0UniX));
 	}
 	
+    TFile* f=new TFile("fnSpec.root","read");
+    if( f->IsZombie() )
+    {
+        std::cout<<"Can't find fnSpec.root ... "<<endl;
+    }
+    TH1F* h=(TH1F*)f->Get("h1");
+    if( !h )
+    {
+        std::cout<<"Can't find h1 in fnSpec.root ... "<<endl;
+    }
+    TCanvas* c=new TCanvas(Form("%sfnSpec",dataVer.c_str()),"c",800,600);
+    //tFnProEWithoutrpcUniX->SetLineColor();
+    tFnProEWithoutrpcUniX->Draw("e");
+    h->SetLineColor(kRed);
+    h->Draw("same");
+    c->SaveAs(Form("%s/%sfnSpec.eps",dataVer.c_str(),dataVer.c_str()));
+    file->cd();
+    c->Write();
+    delete h;
+    delete c;
+    delete f;
+
 	//usr rpc veto
 	//pol1
-	TF1* f1= new TF1("f1","pol1",12.,100.);
+	TF1* f1= new TF1("f1","pol1",12.,60.);
 	tFnProEWithrpc->Fit(f1,"R");
 	double par1[2],ipar1[2];
 	f1->GetParameters(&par1[0]);
@@ -446,18 +475,18 @@ void Ibd::Terminate()
     double bincenter=0.;
 	double NFn1=0.;
 	double iNFnsquare1=0.;
-    //for( int j=binlow ; j<=binup ; j++ )
-    //{
-    //bincenter=tFnProEWithrpc->GetBinCenter(j);
-    //NFn1+=(par1[0]+par1[1]*bincenter)/BinWt[j];
-    //iNFnsquare1+=(bincenter*bincenter*ipar1[1]*ipar1[1]+ipar1[0]*ipar1[0])/(BinWt[j]*BinWt[j]);
-    //}
-    NFn1=(par1[0]*2+12.7*par1[1])*(12-0.7)/2;
-    iNFnsquare1=(ipar1[0]*2+12.7*ipar1[1])*(12-0.7)/2; //this is not appropriate ,from zhangfh.
+    for( int j=binlow ; j<=binup ; j++ )
+    {
+        bincenter=tFnProEWithrpc->GetBinCenter(j);
+        NFn1+=(par1[0]+par1[1]*bincenter)/BinWt[j];
+        iNFnsquare1+=(bincenter*bincenter*ipar1[1]*ipar1[1]+ipar1[0]*ipar1[0])/(BinWt[j]*BinWt[j]);
+    }
+    //NFn1=(par1[0]*2+12.7*par1[1])*(12-0.7)/2;
+    //iNFnsquare1=(ipar1[0]*2+12.7*ipar1[1])*(12-0.7)/2; //this is not appropriate ,from zhangfh.
 
 	//NFn1=f1->Integral(0.7,12.0);
 	//pol0
-	TF1* f0= new TF1("f0","pol0",12.,100.);
+	TF1* f0= new TF1("f0","pol0",12.,60.);
 	tFnProEWithrpc->Fit(f0,"R+");
 	double par0,ipar0;
 	f0->GetParameters(&par0);
@@ -465,21 +494,21 @@ void Ibd::Terminate()
 	double NFn0=0.;
 	double iNFnsquare0=0.;
 	
-    //for( int j=binlow ; j<=binup ; j++ )
-    //{
-    //bincenter=tFnProEWithrpc->GetBinCenter(j);
-    //NFn0+=par0/BinWt[j];
-    //iNFnsquare0+=ipar0*ipar0/(BinWt[j]*BinWt[j]);
-    //}
-    NFn0=tFnProEWithrpc->Integral(tFnProEWithrpc->FindBin(12),tFnProEWithrpc->FindBin(100),"width")*(12-0.7)/(100-12);
-    iNFnsquare0=sqrt(tFnProEWithrpc->Integral(tFnProEWithrpc->FindBin(12),tFnProEWithrpc->FindBin(100),"width"))*(12-0.7)/(100-12);
-	//NFn00=f00->Integral(0.7,12.0);
+    for( int j=binlow ; j<=binup ; j++ )
+    {
+        bincenter=tFnProEWithrpc->GetBinCenter(j);
+        NFn0+=par0/BinWt[j];
+        iNFnsquare0+=ipar0*ipar0/(BinWt[j]*BinWt[j]);
+    }
+    //NFn0=tFnProEWithrpc->Integral(tFnProEWithrpc->FindBin(12),tFnProEWithrpc->FindBin(100),"width")*(12-0.7)/(100-12);
+    //iNFnsquare0=sqrt(tFnProEWithrpc->Integral(tFnProEWithrpc->FindBin(12),tFnProEWithrpc->FindBin(100),"width"))*(12-0.7)/(100-12);
+    ////NFn00=f00->Integral(0.7,12.0);
 
 	//NFn0=f0->Integral(0.7,12.0);
 	//without using rpc veto
 	//pol1
-	TF1* f10= new TF1("f10","pol1",12.,100.);
-	TFitResultPtr r=tFnProEWithoutrpc->Fit(f10,"RS");
+	TF1* f10= new TF1("f10","pol1",12.,60.);
+	TFitResultPtr r=tFnProEWithoutrpcUniX->Fit(f10,"RS");
     double chi2=r->Chi2();
     double ndf=r->Ndf();
 	double par10[2],ipar10[2];
@@ -488,18 +517,18 @@ void Ibd::Terminate()
 	ipar10[1]=f10->GetParError(1);
 	double NFn10=0.;
 	double iNFnsquare10=0.;
-    //for( int j=binlow ; j<=binup ; j++ )
-    //{
-        //bincenter=tFnProEWithoutrpc->GetBinCenter(j);
-        //NFn10+=(par10[0]+par10[1]*bincenter)/BinWt[j];
-        //iNFnsquare10+=(bincenter*bincenter*ipar10[1]*ipar10[1]+ipar10[0]*ipar10[0])/(BinWt[j]*BinWt[j]);
-        //}
-    NFn10=(par10[0]*2+12.7*par10[1])*(12-0.7)/2;
-    iNFnsquare10=(ipar10[0]*2+12.7*ipar10[1])*(12-0.7)/2;
-
+    for( int j=binlow ; j<=binup ; j++ )
+    {
+        bincenter=tFnProEWithoutrpcUniX->GetBinCenter(j);
+        NFn10+=(par10[0]+par10[1]*bincenter);
+        iNFnsquare10+=(bincenter*bincenter*ipar10[1]*ipar10[1]+ipar10[0]*ipar10[0]);
+    }
+    //NFn10=(par10[0]*2+12.7*par10[1])*(12-0.7)/2;
+    //iNFnsquare10=(ipar10[0]*2+12.7*ipar10[1])*(12-0.7)/2;
+    //
 	//pol0
-	TF1* f00= new TF1("f00","pol0",12.,100.);
-	TFitResultPtr r0=tFnProEWithoutrpc->Fit(f00,"R+S");
+	TF1* f00= new TF1("f00","pol0",12.,60.);
+	TFitResultPtr r0=tFnProEWithoutrpcUniX->Fit(f00,"R+S");
     double chi20=r0->Chi2();
     double ndf0=r0->Ndf();
 	double par00,ipar00;
@@ -507,14 +536,14 @@ void Ibd::Terminate()
 	ipar00=f00->GetParError(0);
 	double NFn00=0.;
 	double iNFnsquare00=0.;
-    //for( int j=binlow ; j<=binup ; j++ )
-    //{
-    //bincenter=tFnProEWithoutrpc->GetBinCenter(j);
-    //NFn00+=par00/BinWt[j];
-    //iNFnsquare00+=ipar00*ipar00/(BinWt[j]*BinWt[j]);
-    //}
-    NFn00=tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width")*(12-0.7)/(100-12);
-    iNFnsquare00=sqrt(tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width"))*(12-0.7)/(100-12);
+    for( int j=binlow ; j<=binup ; j++ )
+    {
+        bincenter=tFnProEWithoutrpcUniX->GetBinCenter(j);
+        NFn00+=par00;
+        iNFnsquare00+=ipar00*ipar00;
+    }
+    //NFn00=tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width")*(12-0.7)/(100-12);
+    //iNFnsquare00=sqrt(tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width"))*(12-0.7)/(100-12);
 	//NFn00=f00->Integral(0.7,12.0);
 	std::cout<<"tNumo tNum1 tNum2  : "<<tNumo<<" " <<tNum1<<" "<<tNum2 <<endl;
 	std::cout<<"number of Fn  : "<<endl;
@@ -540,7 +569,7 @@ void Ibd::Terminate()
 	std::cout<<"number of Fn (without using rpc veto) : "<<endl;
     std::cout<<"first order a+b*x  : a = "<<par10[0]<<"+-"<<ipar10[0]<<" b = "<<par10[1]<<"+-"<<ipar10[1]<<" chi2/ndf="<<chi2<<"/"<<ndf<<endl;
     std::cout<<"zero  order a      : a = "<<par00<<"+-"<<ipar00<<" chi2/ndf="<<chi20<<"/"<<ndf0<<endl;
-    std::cout<<"zero  order a zfj  : a = "<<tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width")/(100-12)<<"+-"<<sqrt(tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width"))/(100-12) <<endl;
+    //std::cout<<"zero  order a zfj  : a = "<<tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width")/(100-12)<<"+-"<<sqrt(tFnProEWithoutrpc->Integral(tFnProEWithoutrpc->FindBin(12),tFnProEWithoutrpc->FindBin(100),"width"))/(100-12) <<endl;
 
 	std::cout<<"NFn00  : "<<NFn00<<endl;
 	std::cout<<"NFn10  : "<<NFn10<<endl;

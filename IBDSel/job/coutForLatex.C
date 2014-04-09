@@ -70,7 +70,7 @@
         outfile4out<<"      Rate(/day) & "<<endl;
         outfile4out<<"       \\multicolumn{2}{c|}{"<<setprecision(2)<<setiosflags(ios::fixed)<<outStr[17][0] <<"$\\pm$"<<outStr[18][0] <<"} & "<<endl;
         outfile4out<<"       \\multicolumn{2}{c|}{"<<outStr[17][2] <<"$\\pm$"<<outStr[18][2] <<"}& "<<endl;
-        outfile4out<<"       \\multicolumn{4}{c}{"<<outStr[17][4] <<"$\\pm$"<<outStr[17][4]<<"} \\\\ "<<endl;
+        outfile4out<<"       \\multicolumn{4}{c}{"<<outStr[17][4] <<"$\\pm$"<<outStr[18][4]<<"} \\\\ "<<endl;
         outfile4out<<"      \\bottomrule "<<endl;
         outfile4out<<"    \\end{tabular} "<<endl;
 

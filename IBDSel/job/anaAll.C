@@ -1574,3 +1574,4 @@ int anaAll(string dataVer,int siteNum=0)
     std::cout<<"ALL DONE!!! "<<endl;
     return 0;
 }
+

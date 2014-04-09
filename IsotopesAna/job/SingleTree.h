@@ -13,6 +13,7 @@
 #include <TFile.h>
 #include <TSelector.h>
 #include <TH1F.h>
+#include <TH2F.h>
 #include  <TCanvas.h>
 #include  <TLegend.h>
 
@@ -36,24 +37,24 @@ class SingleTree : public TSelector {
         TString dataVer;
         int ADNum;
         int site;
-        //TH1F* singleSpec[4];
-        TH1F* signalWin[6];
-        TH1F* offWin[6];
-        TH1F* isoSpec[6];
-        TH1F* signalWinNoRed[6];
-        TH1F* offWinNoRed[6];
-        TH1F* isoSpecNoRed[6];
+        TH2F* singleSpecVsTime[2][6];
+        TH1F* signalWin[2][6];
+        TH1F* offWin[2][6];
+        TH2F* signalWinXY[2][6];
+        TH2F* offWinXY[2][6];
+        TH2F* signalWinRZ[2][6];
+        TH2F* offWinRZ[2][6];
+        TH1F* isoSpec[2][6];
+        string ifRed[2];
         TH1F* singleUpper[4];
         TH1F* singleLower[4];
         TH1F* AmCSpec[4];
-        TH1F* time2Allmuon;
-        TH1F* time2AllmuonNoRed;
+        TH1F* time2Allmuon[2];
         TH1F* time2lastshowermuonNoRed[5];
         TH1F* time2lastshowermuon[5];
         TTree* time2lastmuon[7];
         TTree* time2lastmuonNoRed[6];
-        Float_t minT2allmuon;
-        Float_t minT2allmuonNoRed;
+        Float_t minT2allmuon[2];
         //double slicetime[6];
         //double slicetimeNoRed[6];
         // Declaration of leaf types

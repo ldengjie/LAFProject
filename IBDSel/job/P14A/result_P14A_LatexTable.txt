@@ -5,11 +5,11 @@ IBD for 8ADs
      \toprule 
      \textcolor{red}{P14A} & AD1 & AD2 & AD3 &AD8& AD4 & AD5 & AD6&AD7 \\ 
      \hline 
-      IBD candidates &213305&216845&208741&138574&63659&65045&66502&42191\\ 
+      IBD candidates &304119&309089&287099&190047&40956&41203&40701&27419\\ 
      \hline 
       DAQ live time(day) &570.258&570.258&572.875&383.229&567.281&567.281&567.281&377.496 \\ 
      \hline 
-      $\varepsilon_{\mu}$ &0.8008&0.7979&0.8382&0.8383&0.9818&0.9818&0.9815&0.9817\\ 
+      $\varepsilon_{\mu}$ &0.8248&0.8218&0.8575&0.8577&0.9811&0.9811&0.9808&0.9811\\ 
      \bottomrule 
     \end{tabular} 
 
@@ -20,19 +20,19 @@ fast neutron for 8ADs
       \textcolor{red}{P14A} & AD1 & AD2 & AD3 & AD8 & AD4 & AD5 & AD6 & AD7  \\ 
       \hline 
       total number & 
-       \multicolumn{2}{c|}{783.29$\pm$387.02} & 
-       \multicolumn{2}{c|}{518.65$\pm$254.27} & 
-       \multicolumn{4}{c}{115.06$\pm$53.72 } \\ 
+       \multicolumn{2}{c|}{767.63$\pm$111.91} & 
+       \multicolumn{2}{c|}{521.90$\pm$111.83} & 
+       \multicolumn{4}{c}{95.03$\pm$2.56 } \\ 
       \hline 
       B/S & 
-       \multicolumn{2}{c|}{0.00182} & 
-       \multicolumn{2}{c|}{ 0.00149}& 
-       \multicolumn{4}{c}{0.00048} \\ 
+       \multicolumn{2}{c|}{0.00125} & 
+       \multicolumn{2}{c|}{ 0.00109}& 
+       \multicolumn{4}{c}{0.00063} \\ 
       \hline 
       Rate(/day) & 
-       \multicolumn{2}{c|}{0.87$\pm$0.43} & 
-       \multicolumn{2}{c|}{0.65$\pm$0.32}& 
-       \multicolumn{4}{c}{0.06$\pm$0.06} \\ 
+       \multicolumn{2}{c|}{0.84$\pm$0.12} & 
+       \multicolumn{2}{c|}{0.65$\pm$0.14}& 
+       \multicolumn{4}{c}{0.05$\pm$0.00} \\ 
       \bottomrule 
     \end{tabular} 
 
@@ -43,13 +43,13 @@ He8/Li9 for 8ADs
       \textcolor{red}{P14A} & AD1 & AD2 & AD3 & AD8 & AD4 & AD5 & AD6 & AD7  \\ 
       \hline 
       total number & 
-       \multicolumn{2}{c|}{1263.66$\pm$209.38} & 
-       \multicolumn{2}{c|}{527.65$\pm$155.69} & 
-       \multicolumn{4}{c}{257.14$\pm$30.54 } \\ 
+       \multicolumn{2}{c|}{0.00$\pm$0.00} & 
+       \multicolumn{2}{c|}{0.00$\pm$0.00} & 
+       \multicolumn{4}{c}{0.00$\pm$0.00 } \\ 
       \hline 
       Rate(/day) & 
-       \multicolumn{2}{c|}{1.39$\pm$0.73} & 
-       \multicolumn{2}{c|}{0.66$\pm$0.38}& 
-       \multicolumn{4}{c}{0.13$\pm$0.06} \\ 
+       \multicolumn{2}{c|}{0.00$\pm$0.00} & 
+       \multicolumn{2}{c|}{0.00$\pm$0.00}& 
+       \multicolumn{4}{c}{0.00$\pm$0.00} \\ 
       \bottomrule 
     \end{tabular} 

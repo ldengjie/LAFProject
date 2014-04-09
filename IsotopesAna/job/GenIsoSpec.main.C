@@ -54,10 +54,8 @@ int anaTree(int siteNum,string dataVer)
     chain.Process("SingleTree",siteAndDataVer.c_str());
 	return 0;
 }
-//int GenIsoSpec(string dataVer,int sitenum=0)
 int main(int argc, char *argv[])
 {
-    //string dataVer="P13A";
     string dataVer=argv[1];
     int sitenum=atoi(argv[2]);
     if( !(dataVer=="P13A"||dataVer=="P12E"||dataVer=="P14A") )
